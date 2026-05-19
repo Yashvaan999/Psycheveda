@@ -1,0 +1,108 @@
+{
+  "theme_and_archetype": {
+    "domain": "Health, Wellness, Mindfulness, Behavioral Psychology",
+    "theme": "DARK",
+    "archetype": "1 (Organic & Earthy - with User-defined Vedic Slate override)",
+    "description": "A uniform dark neutral theme infused with warm 'Sacred Earth' and Vedic colors. The app feels grounding, clinical-yet-spiritual, utilizing dense spacing for deep focus."
+  },
+  "typography": {
+    "primary_font": "Cormorant Garamond",
+    "primary_font_css": "font-serif",
+    "body_font": "Outfit",
+    "body_font_css": "font-sans",
+    "heading_strategy": "Use Cormorant Garamond for all H1, H2, and H3 elements to enforce the spiritual/Vedic feel. Use tracking-tight.",
+    "body_strategy": "Use Outfit for all readable content, metrics, UI labels, and inputs for modern, clean humanist legibility."
+  },
+  "color_system": {
+    "global_palette": {
+      "background": "#161B22",
+      "card": "#21262D",
+      "primary": "#E58A44",
+      "secondary": "#52796F",
+      "text": "#F0F4F8",
+      "subtext": "#8B949E",
+      "border": "#30363D",
+      "ring": "#E58A44"
+    },
+    "premium_hpa_axis": {
+      "cortisol_am": {
+        "background": "#2C2A28",
+        "card": "#3B3632",
+        "primary": "#F4B371",
+        "secondary": "#8CAEA5",
+        "text": "#F9F6F0",
+        "subtext": "#A39E99"
+      },
+      "melatonin_pm": {
+        "background": "#0B0E14",
+        "card": "#131822",
+        "primary": "#B27242",
+        "secondary": "#496875",
+        "text": "#E2E8F0",
+        "subtext": "#758498"
+      }
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Mobile-first responsive layout with generous inner padding (p-6, p-8) within cards to create breathing room.",
+    "container_max_width": "max-w-md mx-auto md:max-w-4xl",
+    "grid_system": "Bento-style grids for dashboard metrics. Vertical stacks for journal timeline.",
+    "borders_and_radius": "rounded-2xl for main cards, rounded-full for badges and small buttons. Thin 1px borders (border-white/5) to outline cards."
+  },
+  "motion_and_interactions": {
+    "general": "Slow, smooth transitions (duration-500) mimicking deep breathing.",
+    "buttons": "Hover: scale down slightly (scale-95) with opacity-90 to feel grounded rather than 'bouncing'.",
+    "page_transitions": "Fade-in with slight upward drift (opacity: 0 -> 1, y: 10 -> 0)."
+  },
+  "components": {
+    "buttons": "Primary buttons: bg-[#E58A44] text-[#161B22] rounded-full hover:bg-[#E58A44]/90. Secondary: bg-[#21262D] border border-[#30363D] text-[#F0F4F8].",
+    "cards": "bg-[#21262D] rounded-2xl p-6 border border-[#30363D]/50 shadow-[0_8px_32px_rgba(0,0,0,0.4)].",
+    "inputs": "bg-[#161B22] border-[#30363D] rounded-xl text-[#F0F4F8] focus:ring-1 focus:ring-[#E58A44].",
+    "glassmorphism": "Used sparingly on fixed bottom nav or sticky top headers: bg-[#161B22]/80 backdrop-blur-xl border-b border-[#30363D]/50."
+  },
+  "iconography": {
+    "library": "lucide-react",
+    "style": "Light stroke (stroke-width 1.5), rounded edges, avoiding heavy filled icons."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxtaW5kZnVsbmVzcyUyMGNhbG0lMjBuYXR1cmV8ZW58MHx8fHwxNzc5MTc4NDcyfDA&ixlib=rb-4.1.0&q=85",
+        "category": "splash_and_auth",
+        "description": "Green leafed tree surrounded by fog - perfectly matches the Sage and Slate grounding vibe."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1598826739205-d09823c3bc3d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxtaW5kZnVsbmVzcyUyMGNhbG0lMjBuYXR1cmV8ZW58MHx8fHwxNzc5MTc4NDcyfDA&ixlib=rb-4.1.0&q=85",
+        "category": "onboarding_pillars",
+        "description": "Gray rocks on seashore, symbolic of grounding and foundation for the 5 pillars."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxzdW5yaXNlJTIwbWlzdCUyMG5hdHVyZXxlbnwwfHx8fDE3NzkxNzg0NzF8MA&ixlib=rb-4.1.0&q=85",
+        "category": "hpa_axis_am",
+        "description": "Sunrise mist over trees - aligns with Morning Cortisol visual palette."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwbmlnaHQlMjBzdGFycnklMjBza3l8ZW58MHx8fHwxNzc5MTc4NDcxfDA&ixlib=rb-4.1.0&q=85",
+        "category": "hpa_axis_pm",
+        "description": "Starry dark night sky - aligns with Evening Melatonin visual palette."
+      }
+    ]
+  },
+  "screens_blueprint": {
+    "splash_auth": "Full-screen background image (splash_and_auth) with a heavy #161B22/80 gradient overlay. Logo in Cormorant Garamond. Social/Email login buttons stacked at the bottom.",
+    "onboarding_pillars": "Grid layout (cols-1 or cols-2). Each pillar is a card with subtle Sage icon. User selects to unlock 'Goals'.",
+    "goal_setup": "Bento style. 5 AI-suggested goals in selectable list, 1 custom input field. Time-estimate slider (days/hours).",
+    "dashboard": "Top: Bless Points balance & Veda Streak counter in a prominent Saffron-accented widget. Middle: Daily Mini-Tasks checklist (auto-generated from goals). Bottom: Fab or large button to enter Journal.",
+    "journal_flow": "Distraction-free 5-step horizontal swipe or vertical scroll sequence. 1. Situation (Text) -> 2. Emotion (Tags) -> 3. NLP Frame (Select 1 of 5) -> 4. Ease Slider (1-10) -> 5. End Feeling. Evening entries include a 'Bless Point' gratitude prompt.",
+    "journal_history": "Vertical timeline of past entries. Date-wise. Cards use #21262D background.",
+    "hpa_axis_premium": "The crown jewel. Dynamic UI. Reads local time. If 5AM-2PM: Cortisol AM palette and images. If 5PM-4AM: Melatonin PM palette and images. Uses rich gradients transitioning the background color seamlessly."
+  },
+  "instructions_to_main_agent": [
+    "Ensure Tailwind CSS is configured with the exact hex codes provided in color_system.",
+    "Do not use Inter, Roboto, or Space Grotesk. Import Cormorant Garamond and Outfit via Google Fonts.",
+    "Implement the HPA Axis theme dynamically using React state and standard JS Date object to toggle Tailwind classes or CSS variables.",
+    "Use Shadcn UI for standard elements (sliders, inputs) but strip default Vercel-look borders and apply the rounded-2xl and custom #30363D borders.",
+    "Every interactive element MUST include a data-testid attribute in kebab-case (e.g., data-testid='login-submit-button').",
+    "The application is mobile-first. Use max-w-md mx-auto on large screens to simulate a mobile app container, or keep it beautifully responsive."
+  ]
+}
