@@ -43,6 +43,12 @@ where UI adapts to the user's localized biological clock.
 
 - ✅ FastAPI backend with JWT auth, all endpoints under `/api`
 - ✅ MongoDB collections: users, goals, mini_tasks, journal_entries, bless_transactions
+- ✅ **Visual overhaul (later same day)**: pivoted from dark "Sacred Earth & Slate" → light **"Saffron, Sage & Linen"** organic palette
+   - Tokens: `#FBF9F4` canvas, `#F3EFE6` cards, `#D97736` saffron, `#4E7065` sage, `#2D3631` text, `#7A847F` subtext, `#E8E2D5` ultra-subtle borders
+   - Fonts swapped: Cormorant Garamond → **Lora** (display) | Outfit → **Inter** (body)
+   - Border radii increased globally: inputs/cards `16px` (rounded-2xl), primary buttons `24px` (rounded-3xl)
+   - Padding bumped: inputs `px-5 py-4`, cards `p-7`; harsh borders eliminated, depth defined by soft natural shadows
+   - HPA Axis remains the **only** dynamic-tint exception (cortisol_am / twilight / melatonin_pm)
 - ✅ Sacred Earth & Slate design tokens (Tailwind + global CSS)
 - ✅ Cormorant Garamond display + Outfit body fonts (loaded via Google Fonts)
 - ✅ Auth screen with Sign In / Create Account tabs

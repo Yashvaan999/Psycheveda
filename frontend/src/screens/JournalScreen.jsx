@@ -109,7 +109,7 @@ export default function JournalScreen() {
               key={i}
               className={cn(
                 "h-1 flex-1 rounded-full transition-all",
-                i <= step ? "bg-psy-primary" : "bg-psy-card",
+                i <= step ? "bg-psy-primary" : "bg-psy-border",
               )}
             />
           ))}
@@ -187,10 +187,10 @@ export default function JournalScreen() {
                   onClick={() => setField("nlp_frame", f.key)}
                   data-testid={`frame-${f.key.replace(/\s+/g, "-").toLowerCase()}`}
                   className={cn(
-                    "w-full text-left rounded-xl border p-4 transition",
+                    "w-full text-left rounded-2xl border p-4 transition",
                     active
-                      ? "bg-psy-primary/10 border-psy-primary/60"
-                      : "bg-psy-bg border-psy-border hover:border-psy-secondary/50",
+                      ? "bg-psy-primary/8 border-psy-primary/50 shadow-soft"
+                      : "bg-psy-bg border-psy-border hover:border-psy-secondary/40",
                   )}
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -269,7 +269,7 @@ export default function JournalScreen() {
         </Card>
       )}
 
-      {error && <p className="text-sm text-red-300 mt-4" data-testid="journal-error">{error}</p>}
+      {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mt-4" data-testid="journal-error">{error}</p>}
 
       <div className="flex gap-2 mt-6">
         {step > 0 && (

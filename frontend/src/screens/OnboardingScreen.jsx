@@ -143,15 +143,15 @@ export default function OnboardingScreen() {
                 className={cn(
                   "w-full text-left transition-all duration-300 rounded-2xl border p-5 flex items-center gap-4",
                   active
-                    ? "bg-psy-primary/10 border-psy-primary/60"
-                    : "bg-psy-card border-psy-border/60 hover:border-psy-secondary/50",
+                    ? "bg-psy-primary/8 border-psy-primary/50 shadow-soft"
+                    : "bg-psy-card border-psy-border hover:border-psy-secondary/40 hover:shadow-soft",
                 )}
               >
                 <span
                   className={cn(
-                    "h-12 w-12 rounded-xl flex items-center justify-center border",
+                    "h-12 w-12 rounded-2xl flex items-center justify-center border transition",
                     active
-                      ? "border-psy-primary/60 bg-psy-primary/20 text-psy-primary"
+                      ? "border-psy-primary/40 bg-psy-primary/15 text-psy-primary"
                       : "border-psy-border bg-psy-bg text-psy-secondary",
                   )}
                 >
@@ -169,7 +169,7 @@ export default function OnboardingScreen() {
           })}
         </div>
 
-        {error && <p className="text-sm text-red-300 mt-4">{error}</p>}
+        {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2 mt-4">{error}</p>}
 
         <Button
           onClick={startGoals}
@@ -220,16 +220,16 @@ export default function OnboardingScreen() {
               onClick={() => toggleSuggestion(s)}
               data-testid={`suggestion-${s.slice(0, 20)}`}
               className={cn(
-                "w-full text-left rounded-xl border p-4 transition flex items-start gap-3",
+                "w-full text-left rounded-2xl border p-4 transition flex items-start gap-3",
                 active
-                  ? "bg-psy-primary/10 border-psy-primary/60"
-                  : "bg-psy-card border-psy-border/60 hover:border-psy-secondary/50",
+                  ? "bg-psy-primary/8 border-psy-primary/50 shadow-soft"
+                  : "bg-psy-card border-psy-border hover:border-psy-secondary/40",
               )}
             >
               <div
                 className={cn(
-                  "mt-0.5 h-5 w-5 rounded-md border flex items-center justify-center shrink-0",
-                  active ? "bg-psy-primary border-psy-primary text-psy-bg" : "border-psy-border",
+                  "mt-0.5 h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition",
+                  active ? "bg-psy-primary border-psy-primary text-white" : "border-psy-border bg-psy-bg",
                 )}
               >
                 {active && <Check size={14} strokeWidth={2.5} />}
@@ -276,9 +276,9 @@ export default function OnboardingScreen() {
                   onClick={() => updateActive({ estimateUnit: u })}
                   data-testid={`estimate-unit-${u}`}
                   className={cn(
-                    "px-3 py-2 text-xs uppercase tracking-wider transition",
+                    "px-4 py-2.5 text-xs uppercase tracking-wider transition font-medium",
                     activeData?.estimateUnit === u
-                      ? "bg-psy-primary text-psy-bg"
+                      ? "bg-psy-primary text-white"
                       : "text-psy-subtext hover:text-psy-text",
                   )}
                 >
@@ -293,7 +293,7 @@ export default function OnboardingScreen() {
         We'll auto-break this into <Badge tone="sage">Daily Mini-Tasks</Badge> on your dashboard.
       </p>
 
-      {error && <p className="text-sm text-red-300 mb-4">{error}</p>}
+      {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2 mb-4">{error}</p>}
 
       <div className="flex gap-2">
         {activeIdx > 0 && (

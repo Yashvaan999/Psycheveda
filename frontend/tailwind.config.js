@@ -3,15 +3,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ============================================================
+        // Saffron, Sage & Linen — Light Organic Token System
+        // ============================================================
         psy: {
-          bg: "#161B22",
-          card: "#21262D",
-          primary: "#E58A44",
-          secondary: "#52796F",
-          text: "#F0F4F8",
-          subtext: "#8B949E",
-          border: "#30363D",
+          bg: "#FBF9F4",        // Canvas — sun-bleached linen
+          card: "#F3EFE6",      // Containers — morning mist
+          primary: "#D97736",   // Vedic Saffron — accents, CTAs
+          secondary: "#4E7065", // Grounding Sage — success / completion
+          text: "#2D3631",      // Deep forest slate — primary text
+          subtext: "#7A847F",   // Sage moss — muted labels
+          border: "#E8E2D5",    // Ultra-subtle organic border
         },
+        // ============================================================
+        // HPA Axis Fix — Premium-only adaptive palette (unchanged)
+        // ============================================================
         hpa: {
           am_bg: "#2C2A28",
           am_card: "#3B3632",
@@ -28,14 +34,20 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['"Cormorant Garamond"', "serif"],
-        body: ["Outfit", "system-ui", "sans-serif"],
+        display: ["Lora", "Georgia", "serif"],
+        body: ["Inter", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        "2xl": "1rem",
+        // organic, tactile corners — never a 90-degree edge in the UI
+        xl: "0.875rem",  // 14
+        "2xl": "1rem",   // 16  — inputs + cards
+        "3xl": "1.5rem", // 24  — primary action buttons
       },
       boxShadow: {
-        card: "0 8px 32px rgba(0,0,0,0.4)",
+        // Soft natural elevation — not the heavy dark drop-shadow of the old theme
+        card: "0 4px 24px rgba(45, 54, 49, 0.06), 0 1px 2px rgba(45, 54, 49, 0.04)",
+        soft: "0 2px 10px rgba(45, 54, 49, 0.04)",
+        cta: "0 8px 24px rgba(217, 119, 54, 0.20)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease-out both",

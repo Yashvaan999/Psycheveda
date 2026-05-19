@@ -16,18 +16,18 @@ export default function AppShell({ children }) {
 
   return (
     <div className="min-h-screen bg-psy-bg text-psy-text font-body relative">
-      <header className="sticky top-0 z-30 bg-psy-bg/85 backdrop-blur-xl border-b border-psy-border/60">
-        <div className="max-w-md md:max-w-4xl mx-auto px-5 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-psy-bg/85 backdrop-blur-xl border-b border-psy-border">
+        <div className="max-w-md md:max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="font-display text-2xl tracking-tight" data-testid="brand-link">
             Psyche<span className="text-psy-primary">veda</span>
           </Link>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline text-xs text-psy-subtext" data-testid="header-user-name">
+            <span className="hidden sm:inline text-sm text-psy-subtext" data-testid="header-user-name">
               {user?.full_name}
             </span>
             <button
               onClick={() => { logout(); navigate("/auth"); }}
-              className="text-psy-subtext hover:text-psy-primary transition p-2 rounded-full hover:bg-psy-card"
+              className="text-psy-subtext hover:text-psy-primary transition p-2.5 rounded-full hover:bg-psy-card"
               data-testid="logout-button"
               aria-label="Sign out"
             >
@@ -37,11 +37,11 @@ export default function AppShell({ children }) {
         </div>
       </header>
 
-      <main className="max-w-md md:max-w-4xl mx-auto px-5 pt-6 pb-32 animate-fade-up">
+      <main className="max-w-md md:max-w-4xl mx-auto px-5 pt-7 pb-32 animate-fade-up">
         {children}
       </main>
 
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-psy-bg/90 backdrop-blur-xl border-t border-psy-border/60">
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-psy-bg/90 backdrop-blur-xl border-t border-psy-border">
         <div className="max-w-md md:max-w-4xl mx-auto px-6 py-3 flex items-center justify-around">
           {NAV.map((item) => {
             const active = loc.pathname.startsWith(item.to);
@@ -52,7 +52,7 @@ export default function AppShell({ children }) {
                 to={item.to}
                 data-testid={item.testid}
                 className={cn(
-                  "flex flex-col items-center gap-1 text-[11px] tracking-wide transition",
+                  "flex flex-col items-center gap-1 text-[11px] tracking-wide transition px-3 py-1",
                   active ? "text-psy-primary" : "text-psy-subtext hover:text-psy-text",
                 )}
               >

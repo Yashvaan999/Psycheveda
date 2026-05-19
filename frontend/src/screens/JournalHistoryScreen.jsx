@@ -78,7 +78,7 @@ export default function JournalHistoryScreen() {
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.2em] text-psy-subtext mb-1">Ease of Transition</p>
                       <div className="flex items-center gap-2">
-                        <div className="h-1.5 flex-1 bg-psy-bg rounded-full overflow-hidden">
+                        <div className="h-1.5 flex-1 bg-psy-border rounded-full overflow-hidden">
                           <div
                             className="h-full bg-psy-primary"
                             style={{ width: `${e.ease_of_transition * 10}%` }}

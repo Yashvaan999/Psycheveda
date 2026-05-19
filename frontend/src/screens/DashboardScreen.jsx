@@ -112,18 +112,18 @@ export default function DashboardScreen() {
                   onClick={() => toggle(t.id)}
                   data-testid={`task-toggle-${t.id}`}
                   className={cn(
-                    "w-full text-left rounded-2xl border p-4 flex items-start gap-3 transition",
+                    "w-full text-left rounded-2xl border p-5 flex items-start gap-3 transition",
                     t.completed
-                      ? "bg-psy-secondary/10 border-psy-secondary/40"
-                      : "bg-psy-card border-psy-border/60 hover:border-psy-primary/40",
+                      ? "bg-psy-secondary/10 border-psy-secondary/30"
+                      : "bg-psy-card border-psy-border hover:border-psy-primary/40 hover:shadow-soft",
                   )}
                 >
                   <span
                     className={cn(
                       "h-7 w-7 rounded-full border flex items-center justify-center shrink-0 transition",
                       t.completed
-                        ? "bg-psy-secondary border-psy-secondary text-psy-bg"
-                        : "border-psy-border text-psy-subtext",
+                        ? "bg-psy-secondary border-psy-secondary text-white"
+                        : "border-psy-border text-psy-subtext bg-psy-bg",
                     )}
                   >
                     {t.completed ? <Check size={14} strokeWidth={2.5} /> : <CircleDashed size={14} strokeWidth={1.5} />}
@@ -171,7 +171,7 @@ export default function DashboardScreen() {
                     </div>
                     <span className="text-xs text-psy-primary font-medium" data-testid={`goal-progress-${g.id}`}>{pct}%</span>
                   </div>
-                  <div className="h-1 bg-psy-bg rounded-full mt-3 overflow-hidden">
+                  <div className="h-1.5 bg-psy-border rounded-full mt-4 overflow-hidden">
                     <div
                       className="h-full bg-psy-primary transition-all duration-700"
                       style={{ width: `${pct}%` }}
@@ -189,9 +189,9 @@ export default function DashboardScreen() {
         <Card className="bg-gradient-to-br from-psy-card to-psy-bg border-psy-primary/30">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.25em] text-psy-primary mb-1">NLP Journal</p>
-              <h3 className="font-display text-xl leading-tight">Reframe a moment</h3>
-              <p className="text-xs text-psy-subtext mt-1">
+              <p className="text-xs uppercase tracking-[0.25em] text-psy-primary mb-1 font-medium">NLP Journal</p>
+              <h3 className="font-display text-2xl leading-tight">Reframe a moment</h3>
+              <p className="text-xs text-psy-subtext mt-1.5">
                 {stats?.journal_entries_today || 0}/2 entries logged today
               </p>
             </div>
@@ -219,11 +219,11 @@ export default function DashboardScreen() {
 
       <section className="mt-3">
         <Link to="/hpa-axis" className="block">
-          <Card className="!p-4 flex items-center justify-between border-psy-primary/30 bg-gradient-to-r from-psy-primary/5 to-transparent">
+          <Card className="!p-4 flex items-center justify-between border-psy-primary/40 bg-gradient-to-r from-psy-primary/8 to-transparent">
             <div className="flex items-center gap-3">
               <Sparkles size={18} strokeWidth={1.5} className="text-psy-primary" />
               <div>
-                <p className="text-sm">HPA Axis Fix Protocol</p>
+                <p className="text-sm font-medium">HPA Axis Fix Protocol</p>
                 <p className="text-[11px] text-psy-subtext">Circadian-adaptive premium space</p>
               </div>
             </div>

@@ -31,38 +31,41 @@ export default function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-psy-bg flex flex-col text-psy-text font-body">
-      {/* Hero image with overlay */}
-      <div
-        className="relative flex-1 min-h-[40vh] bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxtaW5kZnVsbmVzcyUyMGNhbG0lMjBuYXR1cmV8ZW58MHx8fHwxNzc5MTc4NDcyfDA&ixlib=rb-4.1.0&q=85')",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-psy-bg/40 via-psy-bg/70 to-psy-bg" />
-        <div className="relative h-full flex flex-col items-center justify-end pb-10 px-6 text-center">
-          <div className="inline-flex items-center gap-2 text-psy-secondary text-xs uppercase tracking-[0.3em] mb-3">
+    <div className="min-h-screen bg-psy-bg flex flex-col text-psy-text font-body linen-grain">
+      {/* Light, organic hero */}
+      <div className="relative flex-1 min-h-[42vh] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxtaW5kZnVsbmVzcyUyMGNhbG0lMjBuYXR1cmV8ZW58MHx8fHwxNzc5MTc4NDcyfDA&ixlib=rb-4.1.0&q=85')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-psy-bg/40 via-psy-bg/85 to-psy-bg" />
+        <div className="relative h-full flex flex-col items-center justify-end pb-12 px-6 text-center">
+          <div className="inline-flex items-center gap-2 text-psy-secondary text-xs uppercase tracking-[0.3em] mb-4 font-medium">
             <Leaf size={14} strokeWidth={1.5} />
-            <span>Sacred Earth & Slate</span>
+            <span>Saffron, Sage & Linen</span>
           </div>
           <h1 className="font-display text-5xl sm:text-6xl tracking-tight text-psy-text leading-none">
             Psyche<span className="text-psy-primary">veda</span>
           </h1>
-          <p className="text-psy-subtext text-sm mt-3 max-w-xs">
+          <p className="text-psy-subtext text-sm mt-4 max-w-xs leading-relaxed">
             Where modern behavioral psychology meets ancient Vedic wellness.
           </p>
         </div>
       </div>
 
       {/* Auth form */}
-      <div className="px-6 pt-8 pb-12 max-w-md w-full mx-auto">
-        <div className="flex items-center justify-center gap-2 mb-6 text-xs uppercase tracking-[0.25em]">
+      <div className="px-6 pt-2 pb-12 max-w-md w-full mx-auto">
+        <div className="flex items-center justify-center gap-2 mb-7 text-xs uppercase tracking-[0.22em]">
           <button
             onClick={() => setMode("login")}
             data-testid="tab-login"
-            className={`px-4 py-1.5 rounded-full transition ${
-              mode === "login" ? "bg-psy-card text-psy-primary border border-psy-primary/40" : "text-psy-subtext"
+            className={`px-5 py-2 rounded-full transition font-medium ${
+              mode === "login"
+                ? "bg-psy-card text-psy-primary border border-psy-primary/30"
+                : "text-psy-subtext hover:text-psy-text"
             }`}
           >
             Sign In
@@ -70,27 +73,29 @@ export default function AuthScreen() {
           <button
             onClick={() => setMode("register")}
             data-testid="tab-register"
-            className={`px-4 py-1.5 rounded-full transition ${
-              mode === "register" ? "bg-psy-card text-psy-primary border border-psy-primary/40" : "text-psy-subtext"
+            className={`px-5 py-2 rounded-full transition font-medium ${
+              mode === "register"
+                ? "bg-psy-card text-psy-primary border border-psy-primary/30"
+                : "text-psy-subtext hover:text-psy-text"
             }`}
           >
             Create Account
           </button>
         </div>
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-5">
           {mode === "register" && (
             <div>
               <Label>Full Name</Label>
               <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-psy-subtext" />
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-psy-subtext" />
                 <Input
                   type="text"
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
                   placeholder="Arjun Sharma"
                   required
-                  className="pl-9"
+                  className="pl-11"
                   data-testid="register-name-input"
                 />
               </div>
@@ -99,14 +104,14 @@ export default function AuthScreen() {
           <div>
             <Label>Email</Label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-psy-subtext" />
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-psy-subtext" />
               <Input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="seeker@psycheveda.app"
                 required
-                className="pl-9"
+                className="pl-11"
                 data-testid="auth-email-input"
               />
             </div>
@@ -114,7 +119,7 @@ export default function AuthScreen() {
           <div>
             <Label>Password</Label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-psy-subtext" />
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-psy-subtext" />
               <Input
                 type="password"
                 value={form.password}
@@ -122,14 +127,17 @@ export default function AuthScreen() {
                 placeholder="At least 6 characters"
                 required
                 minLength={6}
-                className="pl-9"
+                className="pl-11"
                 data-testid="auth-password-input"
               />
             </div>
           </div>
 
           {error && (
-            <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2" data-testid="auth-error">
+            <p
+              className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-3"
+              data-testid="auth-error"
+            >
               {error}
             </p>
           )}
