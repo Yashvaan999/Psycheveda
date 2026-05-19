@@ -5,6 +5,8 @@ import OnboardingScreen from "./screens/OnboardingScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import JournalScreen from "./screens/JournalScreen";
 import JournalHistoryScreen from "./screens/JournalHistoryScreen";
+import GratitudeScreen from "./screens/GratitudeScreen";
+import GratitudeHistoryScreen from "./screens/GratitudeHistoryScreen";
 import HpaAxisScreen from "./screens/HpaAxisScreen";
 
 function Loading() {
@@ -36,6 +38,8 @@ function AppRoutes() {
       <Route path="/dashboard" element={<Protected><DashboardScreen /></Protected>} />
       <Route path="/journal" element={<Protected><JournalScreen /></Protected>} />
       <Route path="/journal/history" element={<Protected><JournalHistoryScreen /></Protected>} />
+      <Route path="/gratitude" element={<Protected><GratitudeScreen /></Protected>} />
+      <Route path="/gratitude/history" element={<Protected><GratitudeHistoryScreen /></Protected>} />
       <Route path="/hpa-axis" element={<Protected><HpaAxisScreen /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -42,8 +42,15 @@ where UI adapts to the user's localized biological clock.
 ## Implementation status (✅ shipped 2026-05-19)
 
 - ✅ FastAPI backend with JWT auth, all endpoints under `/api`
-- ✅ MongoDB collections: users, goals, mini_tasks, journal_entries, bless_transactions
+- ✅ MongoDB collections: users, goals, mini_tasks, journal_entries, **gratitude_entries**, bless_transactions
 - ✅ **Visual overhaul (later same day)**: pivoted from dark "Sacred Earth & Slate" → light **"Saffron, Sage & Linen"** organic palette
+- ✅ **Gratitude ritual (later same day)** — dedicated `/gratitude` flow:
+   - 3-point daily entry (1 per user per day), awards **+15 Bless Points**
+   - Journal entries no longer award Bless Points (moved entirely to gratitude)
+   - Date-wise `/gratitude/history` timeline mirroring journal history
+   - New `Gratitude` tab in bottom nav (Dashboard | Journal | **Gratitude** | HPA Axis)
+   - Prominent saffron-accented "Bless Ritual" card on Dashboard with day-state ("Offer" vs "Offered today — +15 Bless earned / View")
+   - Stats endpoint exposes `gratitude_logged_today: bool`
    - Tokens: `#FBF9F4` canvas, `#F3EFE6` cards, `#D97736` saffron, `#4E7065` sage, `#2D3631` text, `#7A847F` subtext, `#E8E2D5` ultra-subtle borders
    - Fonts swapped: Cormorant Garamond → **Lora** (display) | Outfit → **Inter** (body)
    - Border radii increased globally: inputs/cards `16px` (rounded-2xl), primary buttons `24px` (rounded-3xl)

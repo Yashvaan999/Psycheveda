@@ -33,6 +33,10 @@ export const api = {
   createJournal: (data) => client.post("/journal", data).then((r) => r.data),
   listJournal: () => client.get("/journal").then((r) => r.data),
 
+  // gratitude
+  createGratitude: (data) => client.post("/gratitude", data).then((r) => r.data),
+  listGratitude: () => client.get("/gratitude").then((r) => r.data),
+
   // stats
   stats: () => client.get("/stats").then((r) => r.data),
 };

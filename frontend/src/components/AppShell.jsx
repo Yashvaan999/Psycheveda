@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, LogOut } from "lucide-react";
+import { Home, BookOpen, Sparkles, LogOut, Heart } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: Home, testid: "nav-dashboard" },
   { to: "/journal", label: "Journal", icon: BookOpen, testid: "nav-journal" },
+  { to: "/gratitude", label: "Gratitude", icon: Heart, testid: "nav-gratitude" },
   { to: "/hpa-axis", label: "HPA Axis", icon: Sparkles, testid: "nav-hpa-axis" },
 ];
 

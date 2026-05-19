@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Sparkles, Flame, Check, CircleDashed, ArrowRight, BookOpen, Target,
+  Sparkles, Flame, Check, CircleDashed, ArrowRight, BookOpen, Target, Heart,
   Users, Briefcase, Coins, HeartPulse,
 } from "lucide-react";
 import api from "../lib/api";
@@ -184,19 +184,44 @@ export default function DashboardScreen() {
         </section>
       )}
 
-      {/* Journal entrypoint */}
-      <section className="mb-2">
-        <Card className="bg-gradient-to-br from-psy-card to-psy-bg border-psy-primary/30">
+      {/* Gratitude — primary Bless ritual entrypoint */}
+      <section className="mb-3">
+        <Card className="bg-gradient-to-br from-psy-primary/10 via-psy-card to-psy-card border-psy-primary/40">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.25em] text-psy-primary mb-1 font-medium">NLP Journal</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-psy-primary mb-1 font-medium inline-flex items-center gap-1.5">
+                <Sparkles size={12} strokeWidth={1.5} /> Bless Ritual
+              </p>
+              <h3 className="font-display text-2xl leading-tight">Gratitude</h3>
+              <p className="text-xs text-psy-subtext mt-1.5">
+                {stats?.gratitude_logged_today
+                  ? "Offered today — +15 Bless earned"
+                  : "Three blessings → +15 Bless"}
+              </p>
+            </div>
+            <Link to="/gratitude">
+              <Button data-testid="open-gratitude-button">
+                {stats?.gratitude_logged_today ? "View" : "Offer"}
+                <Heart size={16} strokeWidth={1.5} />
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </section>
+
+      {/* Journal entrypoint */}
+      <section className="mb-2">
+        <Card className="bg-gradient-to-br from-psy-card to-psy-bg border-psy-border">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.25em] text-psy-secondary mb-1 font-medium">NLP Journal</p>
               <h3 className="font-display text-2xl leading-tight">Reframe a moment</h3>
               <p className="text-xs text-psy-subtext mt-1.5">
                 {stats?.journal_entries_today || 0}/2 entries logged today
               </p>
             </div>
             <Link to="/journal">
-              <Button data-testid="open-journal-button">
+              <Button variant="secondary" data-testid="open-journal-button">
                 Begin
                 <ArrowRight size={16} strokeWidth={1.5} />
               </Button>
@@ -211,6 +236,18 @@ export default function DashboardScreen() {
             <div className="flex items-center gap-3">
               <BookOpen size={18} strokeWidth={1.5} className="text-psy-secondary" />
               <span className="text-sm">View Journal History</span>
+            </div>
+            <ArrowRight size={16} strokeWidth={1.5} className="text-psy-subtext" />
+          </Card>
+        </Link>
+      </section>
+
+      <section className="mt-3">
+        <Link to="/gratitude/history" className="block">
+          <Card className="!p-4 flex items-center justify-between hover:border-psy-primary/40 transition">
+            <div className="flex items-center gap-3">
+              <Heart size={18} strokeWidth={1.5} className="text-psy-primary" />
+              <span className="text-sm">View Gratitude Timeline</span>
             </div>
             <ArrowRight size={16} strokeWidth={1.5} className="text-psy-subtext" />
           </Card>

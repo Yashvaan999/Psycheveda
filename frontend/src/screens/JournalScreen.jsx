@@ -15,7 +15,7 @@ const FRAMES = [
   { key: "Responsibility", desc: "I am 100% the author of my response." },
 ];
 
-const STEPS = ["Situation", "Emotion", "NLP Frame", "Transition", "End Feeling", "Bless"];
+const STEPS = ["Situation", "Emotion", "NLP Frame", "Transition", "End Feeling"];
 
 export default function JournalScreen() {
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ export default function JournalScreen() {
     ease_of_transition: 5,
     end_feeling: "",
     period: morning ? "morning" : "evening",
-    bless_gratitude: "",
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -55,16 +54,15 @@ export default function JournalScreen() {
     return true;
   };
 
-  // last step is "bless" only on evening; otherwise step 4 is final
-  const isEvening = form.period === "evening";
-  const finalStep = isEvening ? 5 : 4;
+  // Journal flow is now strictly 5 steps. The Bless-Point gratitude moved to
+  // its own dedicated `/gratitude` ritual (only source of Bless Points besides tasks).
+  const finalStep = 4;
 
   const submit = async () => {
     setBusy(true);
     setError("");
     try {
       const payload = { ...form, ease_of_transition: Number(form.ease_of_transition) };
-      if (!isEvening) payload.bless_gratitude = null;
       await api.createJournal(payload);
       await refresh();
       navigate("/journal/history");
@@ -245,26 +243,6 @@ export default function JournalScreen() {
             onChange={(e) => setField("end_feeling", e.target.value)}
             placeholder="e.g. lighter, in control, accepting…"
             data-testid="journal-end-feeling-input"
-          />
-        </Card>
-      )}
-
-      {step === 5 && isEvening && (
-        <Card className="border-psy-primary/40">
-          <div className="flex items-center gap-2 mb-2 text-psy-primary">
-            <Sparkles size={16} strokeWidth={1.5} />
-            <span className="text-xs uppercase tracking-[0.25em]">Bless Point</span>
-          </div>
-          <h2 className="font-display text-2xl mb-1">Three blessings to close the day</h2>
-          <p className="text-sm text-psy-subtext mb-4">
-            Pause. Name what you are grateful for. +3 Bless Points awarded.
-          </p>
-          <Label>Gratitude</Label>
-          <Textarea
-            value={form.bless_gratitude}
-            onChange={(e) => setField("bless_gratitude", e.target.value)}
-            placeholder="The warm tea, my mother's voice, the soft rain…"
-            data-testid="journal-gratitude-input"
           />
         </Card>
       )}

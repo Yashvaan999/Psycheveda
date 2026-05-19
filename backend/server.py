@@ -128,8 +128,9 @@ NLP_FRAMES = [
 
 # Bless rule-book
 BLESS_PER_TASK = 5
-BLESS_PER_JOURNAL = 10
-BLESS_PER_GRATITUDE = 3
+BLESS_PER_JOURNAL = 0          # journaling no longer awards bless (moved to gratitude)
+BLESS_PER_GRATITUDE = 0        # legacy in-journal field — no longer awards bless
+BLESS_PER_GRATITUDE_ENTRY = 15 # awarded for the dedicated daily gratitude ritual (3 points)
 
 
 # ----------------------------------------------------------------------------
@@ -239,6 +240,22 @@ class StatsOut(BaseModel):
     total_goals: int
     tasks_completed_today: int
     journal_entries_today: int
+    gratitude_logged_today: bool
+
+
+class GratitudeCreate(BaseModel):
+    point_1: str = Field(min_length=1, max_length=240)
+    point_2: str = Field(min_length=1, max_length=240)
+    point_3: str = Field(min_length=1, max_length=240)
+
+
+class GratitudeOut(BaseModel):
+    id: str
+    point_1: str
+    point_2: str
+    point_3: str
+    entry_date: str
+    created_at: datetime
 
 
 # ----------------------------------------------------------------------------
@@ -561,8 +578,11 @@ async def create_journal(payload: JournalCreate, user: dict = Depends(get_curren
         "created_at": now_utc(),
     }
     await db.journal_entries.insert_one(doc.copy())
-    await record_bless(user["id"], BLESS_PER_JOURNAL, "journal_entry", entry_id)
-    if doc["bless_gratitude"]:
+    # NOTE: journaling no longer awards Bless Points (BLESS_PER_JOURNAL = 0).
+    # Bless is now exclusively earned via the dedicated daily Gratitude ritual.
+    if BLESS_PER_JOURNAL:
+        await record_bless(user["id"], BLESS_PER_JOURNAL, "journal_entry", entry_id)
+    if doc["bless_gratitude"] and BLESS_PER_GRATITUDE:
         await record_bless(user["id"], BLESS_PER_GRATITUDE, "bless_gratitude", entry_id)
     return JournalOut(**{k: doc[k] for k in JournalOut.model_fields.keys()})
 
@@ -597,6 +617,10 @@ async def stats(user: dict = Depends(get_current_user)):
         "user_id": user["id"],
         "entry_date": today,
     })
+    gratitude_today = await db.gratitude_entries.count_documents({
+        "user_id": user["id"],
+        "entry_date": today,
+    })
     return StatsOut(
         bless_points_balance=user.get("bless_points_balance", 0),
         veda_streak=user.get("veda_streak", 0),
@@ -604,7 +628,51 @@ async def stats(user: dict = Depends(get_current_user)):
         total_goals=total_goals,
         tasks_completed_today=tasks_today_done,
         journal_entries_today=journal_today,
+        gratitude_logged_today=gratitude_today > 0,
     )
+
+
+# ----------------------------------------------------------------------------
+# Gratitude — dedicated daily 3-point ritual (sole source of Bless Points
+# besides mini-task completion). Limited to one entry per user per day.
+# ----------------------------------------------------------------------------
+@app.post("/api/gratitude", response_model=GratitudeOut)
+async def create_gratitude(payload: GratitudeCreate, user: dict = Depends(get_current_user)):
+    today = today_iso()
+    existing = await db.gratitude_entries.find_one({
+        "user_id": user["id"],
+        "entry_date": today,
+    })
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Gratitude already logged today — return tomorrow with a fresh heart.",
+        )
+    entry_id = str(uuid.uuid4())
+    doc = {
+        "id": entry_id,
+        "user_id": user["id"],
+        "point_1": payload.point_1.strip(),
+        "point_2": payload.point_2.strip(),
+        "point_3": payload.point_3.strip(),
+        "entry_date": today,
+        "created_at": now_utc(),
+    }
+    await db.gratitude_entries.insert_one(doc.copy())
+    await record_bless(user["id"], BLESS_PER_GRATITUDE_ENTRY, "gratitude_entry", entry_id)
+    return GratitudeOut(**{k: doc[k] for k in GratitudeOut.model_fields.keys()})
+
+
+@app.get("/api/gratitude")
+async def list_gratitude(user: dict = Depends(get_current_user)):
+    cursor = db.gratitude_entries.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1)
+    grouped: dict[str, list[dict]] = {}
+    async for e in cursor:
+        grouped.setdefault(e["entry_date"], []).append(GratitudeOut(
+            **{k: e[k] for k in GratitudeOut.model_fields.keys()}
+        ).model_dump(mode="json"))
+    sorted_keys = sorted(grouped.keys(), reverse=True)
+    return [{"date": d, "entries": grouped[d]} for d in sorted_keys]
 
 
 # ----------------------------------------------------------------------------
