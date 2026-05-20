@@ -21,15 +21,15 @@ export default function BlessIcon({
       aria-hidden="true"
       {...props}
     >
-      {/* Golden blessing halo ring — open ellipse hovering above the heart */}
+      {/* Golden blessing halo ring — wider, flatter, with a clear gap above the heart */}
       <ellipse
         cx="12"
-        cy="3"
-        rx="5"
-        ry="1.6"
+        cy="1.8"
+        rx="6"
+        ry="1.2"
         fill="none"
         stroke={haloColor}
-        strokeWidth="1.6"
+        strokeWidth="1.5"
       />
 
       {/* Red heart */}
