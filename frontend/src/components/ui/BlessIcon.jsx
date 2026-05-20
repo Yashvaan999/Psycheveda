@@ -1,5 +1,5 @@
 /**
- * BlessIcon — a red heart with a golden circle halo at the top.
+ * BlessIcon — a red heart with a golden blessing halo ring at the top.
  * Static glyph (no animation).
  */
 export default function BlessIcon({
@@ -21,14 +21,15 @@ export default function BlessIcon({
       aria-hidden="true"
       {...props}
     >
-      {/* Golden circle at the top */}
-      <circle
+      {/* Golden blessing halo ring — open ellipse hovering above the heart */}
+      <ellipse
         cx="12"
         cy="3"
-        r="2.2"
-        fill={haloColor}
+        rx="5"
+        ry="1.6"
+        fill="none"
         stroke={haloColor}
-        strokeWidth="0.6"
+        strokeWidth="1.6"
       />
 
       {/* Red heart */}
