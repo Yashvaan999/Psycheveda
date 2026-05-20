@@ -51,11 +51,21 @@ module.exports = {
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease-out both",
+        "modal-fade": "modalFade 0.25s ease-out both",
+        "modal-pop": "modalPop 0.32s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
       keyframes: {
         fadeUp: {
           "0%": { opacity: 0, transform: "translateY(10px)" },
           "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        modalFade: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+        modalPop: {
+          "0%": { opacity: 0, transform: "scale(0.94) translateY(8px)" },
+          "100%": { opacity: 1, transform: "scale(1) translateY(0)" },
         },
       },
     },

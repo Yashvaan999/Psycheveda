@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Sparkles, Flame, Check, CircleDashed, ArrowRight, BookOpen, Target, Heart,
+  Check, CircleDashed, ArrowRight, BookOpen, Target, Heart, Sparkles,
   Users, Briefcase, Coins, HeartPulse,
 } from "lucide-react";
 import api from "../lib/api";
@@ -62,30 +62,7 @@ export default function DashboardScreen() {
         </h1>
       </section>
 
-      {/* Bless + Streak */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <Card className="!p-5 overflow-hidden">
-          <div className="flex items-center gap-2 text-psy-primary mb-2">
-            <Sparkles size={16} strokeWidth={1.5} />
-            <span className="text-[10px] uppercase tracking-[0.2em]">Bless Points</span>
-          </div>
-          <p className="font-display text-4xl text-psy-text" data-testid="bless-points-balance">
-            {stats?.bless_points_balance ?? 0}
-          </p>
-          <p className="text-xs text-psy-subtext mt-1">accumulated grace</p>
-        </Card>
-        <Card className="!p-5">
-          <div className="flex items-center gap-2 text-psy-secondary mb-2">
-            <Flame size={16} strokeWidth={1.5} />
-            <span className="text-[10px] uppercase tracking-[0.2em]">Veda Streak</span>
-          </div>
-          <p className="font-display text-4xl text-psy-text" data-testid="veda-streak">
-            {stats?.veda_streak ?? 0}
-            <span className="text-base text-psy-subtext ml-1">days</span>
-          </p>
-          <p className="text-xs text-psy-subtext mt-1">unbroken devotion</p>
-        </Card>
-      </div>
+      {/* Bless Points + Streak are now shown in the header as tappable indicators */}
 
       {/* Today's tasks */}
       <section className="mb-6">
