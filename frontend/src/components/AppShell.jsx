@@ -103,18 +103,14 @@ export default function AppShell({ children }) {
           </Link>
 
           <div className="flex items-center gap-1.5">
-            {/* Bless Points pill — haloed-heart Bless glyph + gentle animation */}
+            {/* Bless Points pill — red heart with golden halo, static */}
             <button
               onClick={() => setBlessOpen(true)}
               data-testid="header-bless-pill"
-              className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/30 text-psy-primary hover:bg-psy-primary/15 hover:border-psy-primary/45 transition animate-bless-glow"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/30 text-psy-primary hover:bg-psy-primary/15 hover:border-psy-primary/45 transition"
               aria-label={`Bless Points: ${bless}`}
             >
-              <BlessIcon
-                size={18}
-                strokeWidth={1.6}
-                className="animate-petal-breathe origin-center"
-              />
+              <BlessIcon size={18} strokeWidth={1.6} />
               <span className="text-sm font-medium tabular-nums" data-testid="header-bless-value">{bless}</span>
             </button>
 
@@ -209,17 +205,8 @@ export default function AppShell({ children }) {
         testid="bless-modal"
       >
         <div className="flex items-center gap-4 mb-5">
-          <span className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-psy-primary/20 via-psy-primary/15 to-psy-primary/5 border border-psy-primary/40 flex items-center justify-center overflow-hidden text-psy-primary">
-            {/* Soft rotating golden halo wash behind the heart */}
-            <span
-              className="absolute inset-3 rounded-full bg-[#E5B547]/15 animate-petal-spin"
-              aria-hidden="true"
-            />
-            <BlessIcon
-              size={40}
-              strokeWidth={1.5}
-              className="relative animate-petal-breathe origin-center"
-            />
+          <span className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-psy-primary/20 via-psy-primary/15 to-psy-primary/5 border border-psy-primary/40 flex items-center justify-center overflow-hidden">
+            <BlessIcon size={40} strokeWidth={1.5} />
           </span>
           <div>
             <p className="font-display text-4xl leading-none tabular-nums" data-testid="modal-bless-balance">{bless}</p>
