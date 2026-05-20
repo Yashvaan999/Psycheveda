@@ -53,6 +53,9 @@ module.exports = {
         "fade-up": "fadeUp 0.6s ease-out both",
         "modal-fade": "modalFade 0.25s ease-out both",
         "modal-pop": "modalPop 0.32s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "petal-breathe": "petalBreathe 4s ease-in-out infinite",
+        "petal-spin": "petalSpin 24s linear infinite",
+        "bless-glow": "blessGlow 3s ease-in-out infinite",
       },
       keyframes: {
         fadeUp: {
@@ -66,6 +69,18 @@ module.exports = {
         modalPop: {
           "0%": { opacity: 0, transform: "scale(0.94) translateY(8px)" },
           "100%": { opacity: 1, transform: "scale(1) translateY(0)" },
+        },
+        petalBreathe: {
+          "0%, 100%": { transform: "scale(1) rotate(0deg)" },
+          "50%": { transform: "scale(1.12) rotate(8deg)" },
+        },
+        petalSpin: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        blessGlow: {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(217, 119, 54, 0)" },
+          "50%": { boxShadow: "0 0 0 4px rgba(217, 119, 54, 0.18)" },
         },
       },
     },

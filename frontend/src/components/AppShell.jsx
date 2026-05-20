@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, X,
+  Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, X, Flower2,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
@@ -102,14 +102,18 @@ export default function AppShell({ children }) {
           </Link>
 
           <div className="flex items-center gap-1.5">
-            {/* Bless Points pill */}
+            {/* Bless Points pill — Lotus glyph + gentle breathing animation */}
             <button
               onClick={() => setBlessOpen(true)}
               data-testid="header-bless-pill"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/30 text-psy-primary hover:bg-psy-primary/15 hover:border-psy-primary/45 transition"
+              className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/30 text-psy-primary hover:bg-psy-primary/15 hover:border-psy-primary/45 transition animate-bless-glow"
               aria-label={`Bless Points: ${bless}`}
             >
-              <Sparkles size={14} strokeWidth={1.8} />
+              <Flower2
+                size={14}
+                strokeWidth={1.7}
+                className="animate-petal-breathe origin-center"
+              />
               <span className="text-sm font-medium tabular-nums" data-testid="header-bless-value">{bless}</span>
             </button>
 
@@ -204,8 +208,18 @@ export default function AppShell({ children }) {
         testid="bless-modal"
       >
         <div className="flex items-center gap-4 mb-5">
-          <span className="h-14 w-14 rounded-2xl bg-psy-primary/15 border border-psy-primary/35 flex items-center justify-center text-psy-primary">
-            <Sparkles size={26} strokeWidth={1.5} />
+          <span className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-psy-primary/20 via-psy-primary/15 to-psy-primary/5 border border-psy-primary/40 flex items-center justify-center text-psy-primary overflow-hidden">
+            {/* Soft rotating bloom backdrop */}
+            <Flower2
+              size={56}
+              strokeWidth={0.6}
+              className="absolute inset-0 m-auto text-psy-primary/15 animate-petal-spin"
+            />
+            <Flower2
+              size={30}
+              strokeWidth={1.4}
+              className="relative animate-petal-breathe origin-center"
+            />
           </span>
           <div>
             <p className="font-display text-4xl leading-none tabular-nums" data-testid="modal-bless-balance">{bless}</p>
