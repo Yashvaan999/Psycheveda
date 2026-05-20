@@ -7,6 +7,7 @@ import { useAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
 import api from "../lib/api";
 import Modal from "./ui/Modal";
+import BlessIcon from "./ui/BlessIcon";
 import { Button } from "./ui/primitives";
 
 const NAV = [
@@ -102,22 +103,17 @@ export default function AppShell({ children }) {
           </Link>
 
           <div className="flex items-center gap-1.5">
-            {/* Bless Points pill — custom Bless icon (Flaticon · Kajo) + gentle animation */}
+            {/* Bless Points pill — haloed-heart Bless glyph + gentle animation */}
             <button
               onClick={() => setBlessOpen(true)}
               data-testid="header-bless-pill"
               className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/30 text-psy-primary hover:bg-psy-primary/15 hover:border-psy-primary/45 transition animate-bless-glow"
               aria-label={`Bless Points: ${bless}`}
             >
-              <img
-                src="/icons/bless.png"
-                alt=""
-                aria-hidden="true"
-                className="w-[18px] h-[18px] animate-petal-breathe origin-center"
-                style={{
-                  filter:
-                    "brightness(0) saturate(100%) invert(50%) sepia(75%) saturate(721%) hue-rotate(346deg) brightness(91%) contrast(89%)",
-                }}
+              <BlessIcon
+                size={18}
+                strokeWidth={1.6}
+                className="animate-petal-breathe origin-center"
               />
               <span className="text-sm font-medium tabular-nums" data-testid="header-bless-value">{bless}</span>
             </button>
@@ -213,21 +209,16 @@ export default function AppShell({ children }) {
         testid="bless-modal"
       >
         <div className="flex items-center gap-4 mb-5">
-          <span className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-psy-primary/20 via-psy-primary/15 to-psy-primary/5 border border-psy-primary/40 flex items-center justify-center overflow-hidden">
-            {/* Soft halo ring + breathing bless glyph */}
+          <span className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-psy-primary/20 via-psy-primary/15 to-psy-primary/5 border border-psy-primary/40 flex items-center justify-center overflow-hidden text-psy-primary">
+            {/* Soft rotating golden halo wash behind the heart */}
             <span
-              className="absolute inset-2 rounded-full bg-psy-primary/10 animate-petal-spin"
+              className="absolute inset-3 rounded-full bg-[#E5B547]/15 animate-petal-spin"
               aria-hidden="true"
             />
-            <img
-              src="/icons/bless.png"
-              alt=""
-              aria-hidden="true"
-              className="relative w-9 h-9 animate-petal-breathe origin-center"
-              style={{
-                filter:
-                  "brightness(0) saturate(100%) invert(50%) sepia(75%) saturate(721%) hue-rotate(346deg) brightness(91%) contrast(89%)",
-              }}
+            <BlessIcon
+              size={40}
+              strokeWidth={1.5}
+              className="relative animate-petal-breathe origin-center"
             />
           </span>
           <div>
