@@ -200,7 +200,14 @@ class GoalOut(BaseModel):
 
 class JournalCreate(BaseModel):
     situation: str = Field(min_length=2, max_length=2000)
-    natural_emotion: str = Field(min_length=1, max_length=120)
+    natural_emotion: str = Field(min_length=1, max_length=360)
+    initial_frame: Optional[Literal[
+        "Cause & Effect",
+        "Result & Excuse",
+        "Mind & Body as One System",
+        "Perception is Projection",
+        "Responsibility",
+    ]] = None
     nlp_frame: Literal[
         "Cause & Effect",
         "Result & Excuse",
@@ -224,6 +231,7 @@ class JournalOut(BaseModel):
     id: str
     situation: str
     natural_emotion: str
+    initial_frame: Optional[str] = None
     nlp_frame: str
     ease_of_transition: int
     end_feeling: str
@@ -569,6 +577,7 @@ async def create_journal(payload: JournalCreate, user: dict = Depends(get_curren
         "user_id": user["id"],
         "situation": payload.situation.strip(),
         "natural_emotion": payload.natural_emotion.strip(),
+        "initial_frame": payload.initial_frame,
         "nlp_frame": payload.nlp_frame,
         "ease_of_transition": payload.ease_of_transition,
         "end_feeling": payload.end_feeling.strip(),
@@ -592,6 +601,8 @@ async def list_journal(user: dict = Depends(get_current_user)):
     cursor = db.journal_entries.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1)
     grouped: dict[str, list[dict]] = {}
     async for e in cursor:
+        # Older entries may not have initial_frame yet — default to None
+        e.setdefault("initial_frame", None)
         grouped.setdefault(e["entry_date"], []).append(JournalOut(
             **{k: e[k] for k in JournalOut.model_fields.keys()}
         ).model_dump(mode="json"))

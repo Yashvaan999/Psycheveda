@@ -57,7 +57,15 @@ export default function JournalHistoryScreen() {
                       )}
                       <span className="text-psy-subtext">{fmtTime(e.created_at)}</span>
                     </div>
-                    <span className="text-psy-primary font-medium">{e.nlp_frame}</span>
+                    {e.initial_frame ? (
+                      <span className="text-psy-primary font-medium text-right leading-tight">
+                        <span className="text-psy-subtext font-normal">{e.initial_frame}</span>
+                        <span className="text-psy-subtext mx-1">→</span>
+                        {e.nlp_frame}
+                      </span>
+                    ) : (
+                      <span className="text-psy-primary font-medium">{e.nlp_frame}</span>
+                    )}
                   </div>
 
                   <div className="space-y-3">
