@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Sparkles, Sun, Moon, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Sparkles, Sun, Moon } from "lucide-react";
 import api from "../lib/api";
 import AppShell from "../components/AppShell";
 import { Card, Button, Input, Textarea, Label, Badge } from "../components/ui/primitives";
@@ -16,20 +16,10 @@ const FRAMES = [
   { key: "Responsibility",            desc: "Dynamic acceptance. I am aware of my thoughtful response." },
 ];
 
-// Emotions — full Navarasa + modern psychological states
-const NAVARASA = [
-  { tag: "Love",       sanskrit: "Shringara" },
-  { tag: "Joy",        sanskrit: "Hasya" },
-  { tag: "Compassion", sanskrit: "Karuna" },
-  { tag: "Rage",       sanskrit: "Raudra" },
-  { tag: "Courage",    sanskrit: "Veera" },
-  { tag: "Fear",       sanskrit: "Bhayanaka" },
-  { tag: "Disgust",    sanskrit: "Bibhatsa" },
-  { tag: "Wonder",     sanskrit: "Adbhuta" },
-  { tag: "Peace",      sanskrit: "Shanta" },
-];
-
-const MODERN_EMOTIONS = [
+// Single flat list of emotions — Navarasa + modern states, merged
+const ALL_EMOTIONS = [
+  "Love", "Joy", "Compassion", "Rage", "Courage",
+  "Fear", "Disgust", "Wonder", "Peace",
   "Anxious", "Confused", "Frustrated", "Hopeful", "Tired",
   "Grateful", "Lonely", "Resentful", "Overwhelmed", "Inspired",
   "Embarrassed", "Guilty", "Proud", "Jealous", "Numb",
@@ -58,8 +48,7 @@ export default function JournalScreen() {
   const morning = new Date().getHours() < 17;
   const [form, setForm] = useState({
     situation: "",
-    selectedEmotions: [],  // array of strings, max 3
-    natural_emotion: "",   // derived: comma-joined
+    natural_emotion: "",   // free-text, comma-separated; user can also type their own
     initial_frame: "",
     nlp_frame: "",
     ease_of_transition: 5,
@@ -78,16 +67,28 @@ export default function JournalScreen() {
 
   const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // Parse the comma-separated emotion string into an ordered array of trimmed tags
+  const parseEmotions = (s) =>
+    s.split(",").map((x) => x.trim()).filter(Boolean);
+
+  // Toggle an emotion suggestion in the input string. Enforces the 3-tag cap when adding.
   const toggleEmotion = (tag) => {
     setForm((p) => {
-      const has = p.selectedEmotions.includes(tag);
+      const tags = parseEmotions(p.natural_emotion);
+      const hasIdx = tags.findIndex((t) => t.toLowerCase() === tag.toLowerCase());
       let next;
-      if (has) next = p.selectedEmotions.filter((t) => t !== tag);
-      else if (p.selectedEmotions.length >= MAX_EMOTIONS) return p; // capped
-      else next = [...p.selectedEmotions, tag];
-      return { ...p, selectedEmotions: next, natural_emotion: next.join(", ") };
+      if (hasIdx >= 0) {
+        next = tags.filter((_, i) => i !== hasIdx);
+      } else {
+        if (tags.length >= MAX_EMOTIONS) return p; // cap
+        next = [...tags, tag];
+      }
+      return { ...p, natural_emotion: next.join(", ") };
     });
   };
+
+  const selectedTags = parseEmotions(form.natural_emotion);
+  const atCap = selectedTags.length >= MAX_EMOTIONS;
 
   const canNext = () => {
     if (step === 0) return form.situation.trim().length >= 2;
@@ -220,94 +221,40 @@ export default function JournalScreen() {
         </Card>
       )}
 
-      {/* Step 1: Emotions (multi-select up to 3 from Navarasa + modern) */}
+      {/* Step 1: Emotions — single flat suggestion list + editable input (custom emotions allowed) */}
       {step === 1 && (
         <Card>
           <h2 className="font-display text-2xl mb-1">What did you feel?</h2>
-          <p className="text-sm text-psy-subtext mb-4">
-            Choose up to <span className="text-psy-text font-medium">three</span> emotions. They can co-exist.
+          <p className="text-sm text-psy-subtext mb-5">
+            Up to <span className="text-psy-text font-medium">three</span> emotions, separated by commas.
+            Tap any below or write your own.
           </p>
 
-          <div className="flex items-center justify-between mb-3">
-            <Label className="!mb-0">Selected ({form.selectedEmotions.length}/{MAX_EMOTIONS})</Label>
-            {form.selectedEmotions.length > 0 && (
-              <button
-                onClick={() => setForm((p) => ({ ...p, selectedEmotions: [], natural_emotion: "" }))}
-                className="text-xs text-psy-subtext hover:text-psy-primary transition inline-flex items-center gap-1"
-                data-testid="emotion-clear"
-              >
-                <X size={12} strokeWidth={1.5} /> Clear
-              </button>
-            )}
-          </div>
+          <Label>Your emotions ({selectedTags.length}/{MAX_EMOTIONS})</Label>
+          <Input
+            value={form.natural_emotion}
+            onChange={(e) => setField("natural_emotion", e.target.value)}
+            placeholder="e.g. Rage, Confused, a quiet ache I can't name…"
+            data-testid="journal-emotion-input"
+            maxLength={360}
+          />
 
-          {form.selectedEmotions.length === 0 ? (
-            <p className="text-xs text-psy-subtext italic mb-5">No emotions selected yet — tap from below.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2 mb-5">
-              {form.selectedEmotions.map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-psy-primary/10 border border-psy-primary/40 text-psy-primary text-xs font-medium"
-                  data-testid={`emotion-chosen-${t.toLowerCase()}`}
-                >
-                  {t}
-                  <button
-                    onClick={() => toggleEmotion(t)}
-                    aria-label={`Remove ${t}`}
-                    className="hover:text-[#C2682E]"
-                  >
-                    <X size={12} strokeWidth={2} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          <p className="text-[10px] uppercase tracking-[0.22em] text-psy-secondary mb-2 font-medium">Navarasa — the nine classical emotions</p>
-          <div className="flex flex-wrap gap-2 mb-5">
-            {NAVARASA.map(({ tag, sanskrit }) => {
-              const active = form.selectedEmotions.includes(tag);
-              const atCap = !active && form.selectedEmotions.length >= MAX_EMOTIONS;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => toggleEmotion(tag)}
-                  disabled={atCap}
-                  data-testid={`emotion-${tag.toLowerCase()}`}
-                  title={sanskrit}
-                  className={cn(
-                    "text-xs px-3 py-2 rounded-full border transition font-medium",
-                    active
-                      ? "bg-psy-primary/15 border-psy-primary/55 text-psy-primary"
-                      : atCap
-                        ? "bg-psy-bg border-psy-border text-psy-subtext/50 cursor-not-allowed"
-                        : "bg-psy-bg border-psy-border text-psy-subtext hover:text-psy-primary hover:border-psy-primary/40 hover:bg-psy-primary/5",
-                  )}
-                >
-                  <span>{tag}</span>
-                  <span className="text-[9px] italic ml-1 opacity-70">· {sanskrit}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className="text-[10px] uppercase tracking-[0.22em] text-psy-secondary mb-2 font-medium">Other modern states</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-psy-secondary mt-5 mb-3 font-medium">Tap to add</p>
           <div className="flex flex-wrap gap-2">
-            {MODERN_EMOTIONS.map((tag) => {
-              const active = form.selectedEmotions.includes(tag);
-              const atCap = !active && form.selectedEmotions.length >= MAX_EMOTIONS;
+            {ALL_EMOTIONS.map((tag) => {
+              const active = selectedTags.some((t) => t.toLowerCase() === tag.toLowerCase());
+              const disabled = !active && atCap;
               return (
                 <button
                   key={tag}
                   onClick={() => toggleEmotion(tag)}
-                  disabled={atCap}
+                  disabled={disabled}
                   data-testid={`emotion-${tag.toLowerCase()}`}
                   className={cn(
                     "text-xs px-3 py-2 rounded-full border transition font-medium",
                     active
                       ? "bg-psy-primary/15 border-psy-primary/55 text-psy-primary"
-                      : atCap
+                      : disabled
                         ? "bg-psy-bg border-psy-border text-psy-subtext/50 cursor-not-allowed"
                         : "bg-psy-bg border-psy-border text-psy-subtext hover:text-psy-primary hover:border-psy-primary/40 hover:bg-psy-primary/5",
                   )}
