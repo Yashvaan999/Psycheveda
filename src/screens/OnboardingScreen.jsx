@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
       setActiveIdx(0);
       setStep(2);
     } catch (e) {
-      setError(e?.response?.data?.detail || "Could not save selection");
+      setError(e?.message || e?.response?.data?.detail || "Could not save selection");
     } finally {
       setBusy(false);
     }
@@ -109,7 +109,7 @@ export default function OnboardingScreen() {
         navigate("/dashboard");
       }
     } catch (e) {
-      setError(e?.response?.data?.detail || "Could not save goal");
+      setError(e?.message || e?.response?.data?.detail || "Could not save goal");
     } finally {
       setBusy(false);
     }

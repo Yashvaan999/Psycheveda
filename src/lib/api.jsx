@@ -107,10 +107,16 @@ export const api = {
 
   setSelectedPillars: async (pillars) => {
     const { data: { user } } = await supabase.auth.getUser();
+    // Upsert ensures a profile row exists even if the auth trigger didn't run
     const { error } = await supabase
       .from('profiles')
-      .update({ selected_pillars: pillars, onboarding_complete: true })
-      .eq('id', user.id);
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email.split('@')[0],
+        selected_pillars: pillars,
+        onboarding_complete: true,
+      }, { onConflict: 'id' });
     if (error) throw error;
     return { success: true };
   },
