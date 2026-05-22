@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  background-color: #FBF9F4;
+  color: #2D3631;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+* { box-sizing: border-box; }
+
+::selection {
+  background: rgba(217, 119, 54, 0.22);
+  color: #2D3631;
+}
+
+/* Soft, organic scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #E8E2D5; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #D8CFBF; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Saffron slider — light organic feel */
+input[type="range"].psy-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #E8E2D5;
+  border-radius: 999px;
+  outline: none;
+}
+input[type="range"].psy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #D97736;
+  cursor: pointer;
+  box-shadow: 0 0 0 6px rgba(217, 119, 54, 0.12);
+  transition: transform 0.2s ease;
+  border: 2px solid #FBF9F4;
+}
+input[type="range"].psy-slider::-webkit-slider-thumb:hover { transform: scale(1.08); }
+input[type="range"].psy-slider::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #D97736; cursor: pointer; border: 2px solid #FBF9F4;
+}
+
+.font-display {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.font-body { font-family: "Inter", system-ui, sans-serif; }
+
+/* Subtle organic grain texture — used on auth hero */
+.linen-grain {
+  background-image:
+    radial-gradient(circle at 30% 20%, rgba(217, 119, 54, 0.06), transparent 55%),
+    radial-gradient(circle at 80% 90%, rgba(78, 112, 101, 0.06), transparent 55%);
+}
