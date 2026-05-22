@@ -51,7 +51,7 @@ export default function AuthScreen() {
             Psyche<span className="text-psy-primary">veda</span>
           </h1>
           <p className="text-psy-subtext text-sm mt-4 max-w-xs leading-relaxed">
-            Where modern behavioral psychology meets ancient Vedic wellness.
+            Conscious Wisdom, Aligned Mind.
           </p>
         </div>
       </div>
