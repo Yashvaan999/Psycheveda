@@ -22,6 +22,11 @@ export default function AuthScreen() {
       const u = mode === "login"
         ? await login(form.email, form.password)
         : await register(form.email, form.password, form.full_name);
+      if (!u) {
+        setError("Account created! Please check your email to confirm your account before signing in.");
+        setBusy(false);
+        return;
+      }
       navigate(u.user_metadata?.onboarding_complete ? "/dashboard" : "/onboarding");
     } catch (err) {
       let errorMessage = "Something went wrong";
