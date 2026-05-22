@@ -151,6 +151,68 @@ export const api = {
     }));
   },
 
+  getGoal: async (id) => {
+    const { data, error } = await supabase
+      .from('goals')
+      .select('*, mini_tasks(*)')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return {
+      ...data,
+      pillar_label: PILLAR_LABELS[data.pillar] || data.pillar,
+      mini_tasks: data.mini_tasks || [],
+    };
+  },
+
+  updateGoal: async (id, updates) => {
+    const payload = { ...updates };
+    if (updates.estimate_value !== undefined && updates.estimate_unit !== undefined) {
+      const deadline = new Date();
+      if (updates.estimate_unit === 'days') {
+        deadline.setDate(deadline.getDate() + Number(updates.estimate_value));
+      } else {
+        deadline.setHours(deadline.getHours() + Number(updates.estimate_value));
+      }
+      payload.deadline_at = deadline.toISOString();
+      payload.estimate_value = Number(updates.estimate_value);
+    }
+    const { data, error } = await supabase
+      .from('goals')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  deleteGoal: async (id) => {
+    const { error } = await supabase.from('goals').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  logProgress: async (goalId, note) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error } = await supabase
+      .from('goal_progress_logs')
+      .insert({ goal_id: goalId, user_id: user.id, note })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  listProgressLogs: async (goalId) => {
+    const { data, error } = await supabase
+      .from('goal_progress_logs')
+      .select('*')
+      .eq('goal_id', goalId)
+      .order('logged_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
   // tasks (mini_tasks table)
   tasksToday: async () => {
     const today = new Date().toISOString().slice(0, 10);

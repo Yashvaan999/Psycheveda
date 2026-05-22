@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Check, CircleDashed, ArrowRight, BookOpen, Target, Heart, Sparkles,
-  Users, Briefcase, Coins, HeartPulse,
+  Users, Briefcase, Coins, HeartPulse, Pencil,
 } from "lucide-react";
 import api from "../lib/api";
 import AppShell from "../components/AppShell";
@@ -129,7 +129,10 @@ export default function DashboardScreen() {
       {/* Goals overview */}
       {goals.length > 0 && (
         <section className="mb-6">
-          <h2 className="font-display text-2xl mb-3">Your Goals</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-2xl">Your Goals</h2>
+            <span className="text-xs text-psy-subtext">Tap to edit &amp; log</span>
+          </div>
           <div className="space-y-2">
             {goals.slice(0, 4).map((g) => {
               const Icon = PILLAR_ICONS[g.pillar] || Target;
@@ -137,24 +140,29 @@ export default function DashboardScreen() {
               const pct = g.mini_tasks.length === 0 ? 0
                 : Math.round((completedTasks / g.mini_tasks.length) * 100);
               return (
-                <Card key={g.id} className="!p-4">
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} strokeWidth={1.5} className="text-psy-secondary" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-psy-text truncate">{g.title}</p>
-                      <p className="text-[11px] text-psy-subtext">
-                        {g.pillar_label} • {g.estimate_value} {g.estimate_unit}
-                      </p>
+                <Link key={g.id} to={`/goals/${g.id}`} className="block">
+                  <Card className="!p-4 hover:border-psy-primary/40 hover:shadow-soft transition cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} strokeWidth={1.5} className="text-psy-secondary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-psy-text truncate">{g.title}</p>
+                        <p className="text-[11px] text-psy-subtext">
+                          {g.pillar_label} • {g.estimate_value} {g.estimate_unit}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-psy-primary font-medium" data-testid={`goal-progress-${g.id}`}>{pct}%</span>
+                        <Pencil size={13} strokeWidth={1.5} className="text-psy-subtext" />
+                      </div>
                     </div>
-                    <span className="text-xs text-psy-primary font-medium" data-testid={`goal-progress-${g.id}`}>{pct}%</span>
-                  </div>
-                  <div className="h-1.5 bg-psy-border rounded-full mt-4 overflow-hidden">
-                    <div
-                      className="h-full bg-psy-primary transition-all duration-700"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </Card>
+                    <div className="h-1.5 bg-psy-border rounded-full mt-4 overflow-hidden">
+                      <div
+                        className="h-full bg-psy-primary transition-all duration-700"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </Card>
+                </Link>
               );
             })}
           </div>
