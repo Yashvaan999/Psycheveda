@@ -95,8 +95,9 @@ export default function GratitudeScreen() {
           <span className="text-psy-subtext italic text-3xl">for this day</span>
         </h1>
         <p className="text-sm text-psy-subtext mt-3 leading-relaxed">
-          Naming gratitude — even silently — rewires the prefrontal cortex toward
-          contentment. Each entry earns you <span className="text-psy-primary font-medium">+15 Bless Points</span>.
+          Daily gratitude journaling retrains your brain to focus on positivity, reduces
+          stress and overthinking, strengthens emotional resilience, and creates a calmer,
+          more balanced mindset over time.
         </p>
       </div>
 
