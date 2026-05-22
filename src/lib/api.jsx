@@ -1,44 +1,155 @@
-import axios from "axios";
+import { createClient } from '@supabase/supabase-js';
 
-const BASE = import.meta.env.VITE_BACKEND_URL;
-const API = `${BASE}/api`;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const client = axios.create({ baseURL: API });
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem("psy_token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const api = {
   // auth
-  register: (data) => client.post("/auth/register", data).then((r) => r.data),
-  login: (data) => client.post("/auth/login", data).then((r) => r.data),
-  me: () => client.get("/auth/me").then((r) => r.data),
+  register: async ({ email, password, full_name }) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name }
+      }
+    });
+    if (error) throw error;
+    return { token: data.session?.access_token, user: data.user };
+  },
+
+  login: async ({ email, password }) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (error) throw error;
+    return { token: data.session?.access_token, user: data.user };
+  },
+
+  me: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+  },
+
+  logout: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
 
   // pillars / goals
-  listPillars: () => client.get("/pillars").then((r) => r.data),
-  suggestions: (pillar) =>
-    client.get(`/pillars/${pillar}/suggestions`).then((r) => r.data),
-  setSelectedPillars: (pillars) =>
-    client.post("/onboarding/pillars", { pillars }).then((r) => r.data),
-  createGoal: (data) => client.post("/goals", data).then((r) => r.data),
-  listGoals: () => client.get("/goals").then((r) => r.data),
-  tasksToday: () => client.get("/tasks/today").then((r) => r.data),
-  toggleTask: (id) => client.patch(`/tasks/${id}`).then((r) => r.data),
+  listPillars: async () => {
+    const { data, error } = await supabase.from('pillars').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  suggestions: async (pillar) => {
+    const { data, error } = await supabase
+      .from('suggestions')
+      .select('*')
+      .eq('pillar', pillar);
+    if (error) throw error;
+    return data;
+  },
+
+  setSelectedPillars: async (pillars) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ selected_pillars: pillars, onboarding_complete: true })
+      .eq('id', user.id);
+    if (error) throw error;
+    return { success: true };
+  },
+
+  createGoal: async (data) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: goal, error } = await supabase
+      .from('goals')
+      .insert({ ...data, user_id: user.id })
+      .select()
+      .single();
+    if (error) throw error;
+    return goal;
+  },
+
+  listGoals: async () => {
+    const { data, error } = await supabase.from('goals').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  tasksToday: async () => {
+    const { data, error } = await supabase.from('tasks').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  toggleTask: async (id) => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ completed: true })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
 
   // journal
-  journalFrames: () => client.get("/journal/frames").then((r) => r.data),
-  createJournal: (data) => client.post("/journal", data).then((r) => r.data),
-  listJournal: () => client.get("/journal").then((r) => r.data),
+  journalFrames: async () => {
+    const { data, error } = await supabase.from('journal_frames').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  createJournal: async (data) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: journal, error } = await supabase
+      .from('journals')
+      .insert({ ...data, user_id: user.id })
+      .select()
+      .single();
+    if (error) throw error;
+    return journal;
+  },
+
+  listJournal: async () => {
+    const { data, error } = await supabase.from('journals').select('*');
+    if (error) throw error;
+    return data;
+  },
 
   // gratitude
-  createGratitude: (data) => client.post("/gratitude", data).then((r) => r.data),
-  listGratitude: () => client.get("/gratitude").then((r) => r.data),
+  createGratitude: async (data) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: gratitude, error } = await supabase
+      .from('gratitude_entries')
+      .insert({ ...data, user_id: user.id })
+      .select()
+      .single();
+    if (error) throw error;
+    return gratitude;
+  },
+
+  listGratitude: async () => {
+    const { data, error } = await supabase.from('gratitude_entries').select('*');
+    if (error) throw error;
+    return data;
+  },
 
   // stats
-  stats: () => client.get("/stats").then((r) => r.data),
+  stats: async () => {
+    const { data, error } = await supabase.from('user_stats').select('*').single();
+    if (error) throw error;
+    return data;
+  },
 };
 
 export default api;

@@ -22,9 +22,29 @@ export default function AuthScreen() {
       const u = mode === "login"
         ? await login(form.email, form.password)
         : await register(form.email, form.password, form.full_name);
-      navigate(u.onboarding_complete ? "/dashboard" : "/onboarding");
+      navigate(u.user_metadata?.onboarding_complete ? "/dashboard" : "/onboarding");
     } catch (err) {
-      setError(err?.response?.data?.detail || "Something went wrong");
+      let errorMessage = "Something went wrong";
+
+      if (err?.message) {
+        const msg = err.message.toLowerCase();
+
+        if (msg.includes('already registered')) {
+          errorMessage = "An account with this email already exists";
+        } else if (msg.includes('invalid login credentials') || msg.includes('invalid email or password')) {
+          errorMessage = "Invalid email or password. Please try again.";
+        } else if (msg.includes('password')) {
+          errorMessage = "Password must be at least 6 characters long";
+        } else if (msg.includes('email')) {
+          errorMessage = "Please enter a valid email address";
+        } else if (msg.includes('network') || msg.includes('fetch')) {
+          errorMessage = "Unable to connect. Please check your internet connection.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setBusy(false);
     }

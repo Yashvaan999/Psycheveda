@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import api from "./api";
+import { supabase } from "./api";
 
 const AuthContext = createContext(null);
 
@@ -7,51 +7,68 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      (async () => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+        setLoading(false);
+      })();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const bootstrap = useCallback(async () => {
-    const token = localStorage.getItem("psy_token");
-    if (!token) {
-      setLoading(false);
-      return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
     }
-    try {
-      const me = await api.me();
-      setUser(me);
-    } catch {
-      localStorage.removeItem("psy_token");
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     bootstrap();
   }, [bootstrap]);
 
-  const handleAuth = async (fn) => {
-    const res = await fn();
-    localStorage.setItem("psy_token", res.token);
-    setUser(res.user);
-    return res.user;
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (error) throw error;
+    setUser(data.user);
+    return data.user;
   };
 
-  const login = (email, password) =>
-    handleAuth(() => api.login({ email, password }));
-  const register = (email, password, full_name) =>
-    handleAuth(() => api.register({ email, password, full_name }));
+  const register = async (email, password, full_name) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name }
+      }
+    });
+    if (error) throw error;
+    setUser(data.user);
+    return data.user;
+  };
 
-  const logout = () => {
-    localStorage.removeItem("psy_token");
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
   };
 
   const refresh = async () => {
-    try {
-      const me = await api.me();
-      setUser(me);
-      return me;
-    } catch {
-      return null;
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+    return user;
   };
 
   return (
