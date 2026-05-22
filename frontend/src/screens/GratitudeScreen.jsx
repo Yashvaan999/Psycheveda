@@ -7,9 +7,9 @@ import AppShell from "../components/AppShell";
 import { Card, Button, Input, Label } from "../components/ui/primitives";
 
 const PROMPTS = [
-  "Something small you noticed today",
-  "Someone who softened your day",
-  "A grace within yourself",
+  { question: "What brought you joy today?",                            hint: "places or things" },
+  { question: "Who would you like to thank today?",                     hint: "people" },
+  { question: "What from life or your roots are you grateful for?",     hint: "ancestors, nature" },
 ];
 
 export default function GratitudeScreen() {
@@ -106,8 +106,11 @@ export default function GratitudeScreen() {
           {points.map((value, i) => (
             <div key={i} data-testid={`gratitude-field-${i + 1}`}>
               <Label>
-                <span className="text-psy-primary mr-2">{String(i + 1).padStart(2, "0")}</span>
-                {PROMPTS[i]}
+                <span className="text-psy-primary mr-2">{i + 1}.</span>
+                {PROMPTS[i].question}
+                <span className="ml-2 text-[10px] italic normal-case tracking-normal text-psy-subtext">
+                  ({PROMPTS[i].hint})
+                </span>
               </Label>
               <Input
                 value={value}

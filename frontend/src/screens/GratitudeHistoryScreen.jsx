@@ -58,8 +58,8 @@ export default function GratitudeHistoryScreen() {
                   <ol className="space-y-3">
                     {[e.point_1, e.point_2, e.point_3].map((p, i) => (
                       <li key={i} className="flex gap-3" data-testid={`gratitude-point-${i + 1}`}>
-                        <span className="font-display text-psy-primary text-lg leading-none w-7 shrink-0">
-                          {String(i + 1).padStart(2, "0")}
+                        <span className="font-display text-psy-primary text-lg leading-none w-5 shrink-0">
+                          {i + 1}.
                         </span>
                         <p className="text-sm leading-relaxed text-psy-text/90 italic">{p}</p>
                       </li>
