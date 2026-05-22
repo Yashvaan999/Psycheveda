@@ -9,25 +9,28 @@ if (!supabaseUrl || !supabaseKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+const PILLAR_LABELS = {
+  family_relationship: 'Family & Relationship',
+  career_business: 'Career & Business',
+  finance_money: 'Finance & Money',
+  health: 'Health',
+  inner_wellness: 'Inner Wellness',
+};
+
 export const api = {
   // auth
   register: async ({ email, password, full_name }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name }
-      }
+      options: { data: { full_name } }
     });
     if (error) throw error;
     return { token: data.session?.access_token, user: data.user };
   },
 
   login: async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return { token: data.session?.access_token, user: data.user };
   },
@@ -40,6 +43,16 @@ export const api = {
   logout: async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+  },
+
+  // profile
+  fetchProfile: async (userId) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('full_name, onboarding_complete, bless_points_balance, veda_streak, last_activity_date, selected_pillars')
+      .eq('id', userId)
+      .single();
+    return data || {};
   },
 
   // pillars / goals — static constants (no DB table needed)
@@ -104,9 +117,15 @@ export const api = {
 
   createGoal: async (data) => {
     const { data: { user } } = await supabase.auth.getUser();
+    const deadline = new Date();
+    if (data.estimate_unit === 'days') {
+      deadline.setDate(deadline.getDate() + Number(data.estimate_value));
+    } else {
+      deadline.setHours(deadline.getHours() + Number(data.estimate_value));
+    }
     const { data: goal, error } = await supabase
       .from('goals')
-      .insert({ ...data, user_id: user.id })
+      .insert({ ...data, user_id: user.id, deadline_at: deadline.toISOString() })
       .select()
       .single();
     if (error) throw error;
@@ -114,39 +133,80 @@ export const api = {
   },
 
   listGoals: async () => {
-    const { data, error } = await supabase.from('goals').select('*');
+    const { data, error } = await supabase
+      .from('goals')
+      .select('*, mini_tasks(*)')
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return (data || []).map((g) => ({
+      ...g,
+      pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
+      mini_tasks: g.mini_tasks || [],
+    }));
   },
 
+  // tasks (mini_tasks table)
   tasksToday: async () => {
-    const { data, error } = await supabase.from('tasks').select('*');
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from('mini_tasks')
+      .select('*')
+      .eq('scheduled_for', today);
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   toggleTask: async (id) => {
     const { data, error } = await supabase
-      .from('tasks')
-      .update({ completed: true })
+      .from('mini_tasks')
+      .update({ completed: true, completed_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
     if (error) throw error;
+    // Award bless points for task completion
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('bless_transactions').insert({
+        user_id: user.id,
+        delta: 5,
+        reason: 'mini_task_completed',
+        ref_id: id,
+      });
+      await supabase.from('profiles').update({
+        bless_points_balance: supabase.rpc ? undefined : undefined,
+      }).eq('id', user.id);
+      // Increment bless balance via RPC-free approach
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('bless_points_balance')
+        .eq('id', user.id)
+        .single();
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ bless_points_balance: (profile.bless_points_balance || 0) + 5 })
+          .eq('id', user.id);
+      }
+    } catch {
+      // bless award is best-effort
+    }
     return data;
   },
 
-  // journal
-  journalFrames: async () => {
-    const { data, error } = await supabase.from('journal_frames').select('*');
-    if (error) throw error;
-    return data;
-  },
+  // journal — table: journal_entries
+  journalFrames: async () => [
+    { key: 'Cause & Effect',            desc: 'This happened because of X and that has to be blamed.' },
+    { key: 'Result & Excuse',           desc: 'Produced a story for X situation to feel mentally free.' },
+    { key: 'Mind & Body as One System', desc: 'What the mind holds, body speaks and vice versa.' },
+    { key: 'Perception is Projection',  desc: "People's judgement of the situation is their voice, not reality." },
+    { key: 'Responsibility',            desc: 'Dynamic acceptance. I am aware of my thoughtful response.' },
+  ],
 
   createJournal: async (data) => {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: journal, error } = await supabase
-      .from('journals')
+      .from('journal_entries')
       .insert({ ...data, user_id: user.id })
       .select()
       .single();
@@ -155,12 +215,23 @@ export const api = {
   },
 
   listJournal: async () => {
-    const { data, error } = await supabase.from('journals').select('*');
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .select('*')
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    const grouped = {};
+    for (const entry of (data || [])) {
+      const date = entry.entry_date;
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(entry);
+    }
+    return Object.entries(grouped)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([date, entries]) => ({ date, entries }));
   },
 
-  // gratitude
+  // gratitude — table: gratitude_entries
   createGratitude: async (data) => {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: gratitude, error } = await supabase
@@ -169,20 +240,64 @@ export const api = {
       .select()
       .single();
     if (error) throw error;
+    // Award +15 bless points
+    try {
+      await supabase.from('bless_transactions').insert({
+        user_id: user.id,
+        delta: 15,
+        reason: 'gratitude_ritual',
+        ref_id: gratitude.id,
+      });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('bless_points_balance')
+        .eq('id', user.id)
+        .single();
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ bless_points_balance: (profile.bless_points_balance || 0) + 15 })
+          .eq('id', user.id);
+      }
+    } catch {
+      // best-effort
+    }
     return gratitude;
   },
 
   listGratitude: async () => {
-    const { data, error } = await supabase.from('gratitude_entries').select('*');
+    const { data, error } = await supabase
+      .from('gratitude_entries')
+      .select('*')
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    const grouped = {};
+    for (const entry of (data || [])) {
+      const date = entry.entry_date;
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(entry);
+    }
+    return Object.entries(grouped)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([date, entries]) => ({ date, entries }));
   },
 
-  // stats
+  // stats — computed from profiles + live tables
   stats: async () => {
-    const { data, error } = await supabase.from('user_stats').select('*').single();
-    if (error) throw error;
-    return data;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { bless_points_balance: 0, veda_streak: 0, journal_entries_today: 0, gratitude_logged_today: false };
+    const today = new Date().toISOString().slice(0, 10);
+    const [profileRes, journalRes, gratitudeRes] = await Promise.all([
+      supabase.from('profiles').select('bless_points_balance, veda_streak').eq('id', user.id).single(),
+      supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+      supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+    ]);
+    return {
+      bless_points_balance: profileRes.data?.bless_points_balance || 0,
+      veda_streak: profileRes.data?.veda_streak || 0,
+      journal_entries_today: journalRes.data?.length || 0,
+      gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
+    };
   },
 };
 
