@@ -123,16 +123,14 @@ export default function TrackModal({ onClose, goalId = null }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-psy-text/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative w-full sm:max-w-md bg-psy-bg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-psy-border max-h-[85vh] flex flex-col">
-        {/* Handle bar (mobile) */}
-        <div className="w-10 h-1 bg-psy-border rounded-full mx-auto mt-3 sm:hidden" />
+      <div className="relative w-full max-w-md bg-psy-bg rounded-3xl shadow-2xl border border-psy-border max-h-[85vh] flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
