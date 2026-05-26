@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Psycheveda",
+    "slug": "psycheveda",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF9F4"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.psycheveda.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FBF9F4"
+      },
+      "package": "com.psycheveda.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "scheme": "psycheveda",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
