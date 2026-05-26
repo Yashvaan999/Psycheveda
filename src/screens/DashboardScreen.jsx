@@ -255,20 +255,6 @@ export default function DashboardScreen() {
         </Link>
       </section>
 
-      <section className="mt-3">
-        <Link to="/hpa-axis" className="block">
-          <Card className="!p-4 flex items-center justify-between border-psy-primary/40 bg-gradient-to-r from-psy-primary/8 to-transparent">
-            <div className="flex items-center gap-3">
-              <Sparkles size={18} strokeWidth={1.5} className="text-psy-primary" />
-              <div>
-                <p className="text-sm font-medium">HPA Axis Fix Protocol</p>
-                <p className="text-[11px] text-psy-subtext">Circadian-adaptive premium space</p>
-              </div>
-            </div>
-            <Badge tone="primary">Premium</Badge>
-          </Card>
-        </Link>
-      </section>
       {trackGoalId && (
         <TrackModal
           onClose={() => setTrackGoalId(null)}
