@@ -157,16 +157,37 @@ export const api = {
   },
 
   listGoals: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('goals')
       .select('*, mini_tasks(*)')
       .order('created_at', { ascending: false });
     if (error) throw error;
-    return (data || []).map((g) => ({
-      ...g,
-      pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
-      mini_tasks: g.mini_tasks || [],
-    }));
+
+    // Fetch progress log counts per goal as fallback for goals without mini_tasks
+    let logCountByGoal = {};
+    try {
+      const { data: logs } = await supabase
+        .from('goal_progress_logs')
+        .select('goal_id')
+        .eq('user_id', user.id);
+      for (const log of (logs || [])) {
+        logCountByGoal[log.goal_id] = (logCountByGoal[log.goal_id] || 0) + 1;
+      }
+    } catch { /* table may not exist yet */ }
+
+    return (data || []).map((g) => {
+      const totalDays = g.estimate_unit === 'days'
+        ? g.estimate_value
+        : Math.ceil(g.estimate_value / 24);
+      return {
+        ...g,
+        pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
+        mini_tasks: g.mini_tasks || [],
+        progress_log_count: logCountByGoal[g.id] || 0,
+        total_days: totalDays,
+      };
+    });
   },
 
   goalTrackingData: async () => {

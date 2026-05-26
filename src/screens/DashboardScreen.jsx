@@ -144,8 +144,10 @@ export default function DashboardScreen() {
             {goals.slice(0, 4).map((g) => {
               const Icon = PILLAR_ICONS[g.pillar] || Target;
               const completedTasks = g.mini_tasks.filter((m) => m.completed).length;
-              const pct = g.mini_tasks.length === 0 ? 0
-                : Math.round((completedTasks / g.mini_tasks.length) * 100);
+              const totalTasks = g.mini_tasks.length;
+              const pct = totalTasks > 0
+                ? Math.round((completedTasks / totalTasks) * 100)
+                : Math.min(100, Math.round(((g.progress_log_count || 0) / (g.total_days || 1)) * 100));
               return (
                 <Link key={g.id} to={`/goals/${g.id}`} className="block">
                   <Card className="!p-4 hover:border-psy-primary/40 hover:shadow-soft transition cursor-pointer">
