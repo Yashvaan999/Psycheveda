@@ -124,8 +124,11 @@ export const api = {
   createGoal: async (data) => {
     const { data: { user } } = await supabase.auth.getUser();
     const deadline = new Date();
+    const totalDays = data.estimate_unit === 'days'
+      ? Number(data.estimate_value)
+      : Math.ceil(Number(data.estimate_value) / 24);
     if (data.estimate_unit === 'days') {
-      deadline.setDate(deadline.getDate() + Number(data.estimate_value));
+      deadline.setDate(deadline.getDate() + totalDays);
     } else {
       deadline.setHours(deadline.getHours() + Number(data.estimate_value));
     }
@@ -135,6 +138,21 @@ export const api = {
       .select()
       .single();
     if (error) throw error;
+
+    // Auto-generate one mini_task per planned day
+    const tasks = [];
+    for (let i = 0; i < Math.min(totalDays, 365); i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      tasks.push({
+        goal_id: goal.id,
+        title: `Day ${i + 1}: ${data.title}`,
+        scheduled_for: d.toISOString().slice(0, 10),
+      });
+    }
+    if (tasks.length > 0) {
+      await supabase.from('mini_tasks').insert(tasks);
+    }
     return goal;
   },
 

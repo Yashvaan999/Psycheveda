@@ -168,7 +168,14 @@ export default function GoalDetailScreen() {
   const Icon = PILLAR_ICONS[goal.pillar] || Target;
   const completedTasks = goal.mini_tasks.filter((t) => t.completed).length;
   const totalTasks = goal.mini_tasks.length;
-  const pct = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  // For older goals without auto-generated tasks, fall back to progress log count
+  const totalDays = goal.estimate_unit === 'days'
+    ? goal.estimate_value
+    : Math.ceil(goal.estimate_value / 24);
+  const usingLogs = totalTasks === 0;
+  const displayTotal = usingLogs ? totalDays : totalTasks;
+  const displayCompleted = usingLogs ? logs.length : completedTasks;
+  const pct = displayTotal === 0 ? 0 : Math.min(100, Math.round((displayCompleted / displayTotal) * 100));
   const daysLeft = goal.deadline_at
     ? Math.ceil((new Date(goal.deadline_at) - new Date()) / 86400000)
     : null;
@@ -323,7 +330,7 @@ export default function GoalDetailScreen() {
 
           {/* Progress */}
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-psy-subtext">Mini-task progress</span>
+            <span className="text-xs text-psy-subtext">{usingLogs ? "Progress entries" : "Daily task progress"}</span>
             <span className="text-sm font-medium text-psy-primary">{pct}%</span>
           </div>
           <div className="h-2 bg-psy-border rounded-full overflow-hidden">
@@ -332,7 +339,11 @@ export default function GoalDetailScreen() {
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="text-[11px] text-psy-subtext mt-1.5">{completedTasks}/{totalTasks} daily tasks completed</p>
+          <p className="text-[11px] text-psy-subtext mt-1.5">
+            {usingLogs
+              ? `${displayCompleted} of ${displayTotal} days logged`
+              : `${displayCompleted}/${displayTotal} daily tasks completed`}
+          </p>
         </Card>
       )}
 
