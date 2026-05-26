@@ -151,6 +151,59 @@ export const api = {
     }));
   },
 
+  goalTrackingData: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: goals, error } = await supabase
+      .from('goals')
+      .select('id, title, pillar, estimate_unit, estimate_value, created_at, deadline_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    let logsByGoal = {};
+    try {
+      const { data: logs } = await supabase
+        .from('goal_progress_logs')
+        .select('goal_id, entry_date')
+        .eq('user_id', user.id);
+      for (const log of (logs || [])) {
+        if (!logsByGoal[log.goal_id]) logsByGoal[log.goal_id] = new Set();
+        logsByGoal[log.goal_id].add(log.entry_date);
+      }
+    } catch { /* table may not exist yet */ }
+
+    return (goals || []).map((g) => {
+      const totalDays = g.estimate_unit === 'days'
+        ? g.estimate_value
+        : Math.ceil(g.estimate_value / 24);
+      const created = new Date(g.created_at);
+      created.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysElapsed = Math.max(0, Math.floor((today - created) / 86400000));
+      const logDates = logsByGoal[g.id] || new Set();
+      const daysLogged = logDates.size;
+      const missedDays = Math.max(0, daysElapsed - daysLogged);
+      const dayPoint = 100 / totalDays;
+      const probability = Math.max(0, Math.min(100, Math.round(100 - missedDays * dayPoint)));
+
+      // Build day-by-day timeline for sparkline (max 60 days)
+      const displayDays = Math.min(totalDays, 60);
+      const timeline = [];
+      let runningProb = 100;
+      for (let i = 0; i < displayDays; i++) {
+        const d = new Date(created);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const isPast = d <= today;
+        const logged = isPast && logDates.has(dateStr);
+        if (isPast && !logged) runningProb = Math.max(0, runningProb - dayPoint);
+        timeline.push({ dateStr, logged, isPast, prob: runningProb });
+      }
+
+      return { id: g.id, title: g.title, pillar: g.pillar, totalDays, daysElapsed, daysLogged, probability, timeline, dayPoint };
+    });
+  },
+
   getGoal: async (id) => {
     const { data, error } = await supabase
       .from('goals')

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Check, CircleDashed, ArrowRight, BookOpen, Target, Heart, Sparkles,
-  Users, Briefcase, Coins, HeartPulse, Pencil,
+  Users, Briefcase, Coins, HeartPulse, Pencil, TrendingUp,
 } from "lucide-react";
 import api from "../lib/api";
 import AppShell from "../components/AppShell";
 import { Card, Button, Badge } from "../components/ui/primitives";
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/utils";
+import TrackModal from "../components/TrackModal";
 
 const PILLAR_ICONS = {
   family_relationship: Users,
@@ -24,6 +25,7 @@ export default function DashboardScreen() {
   const [tasks, setTasks] = useState([]);
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTrack, setShowTrack] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -131,7 +133,12 @@ export default function DashboardScreen() {
         <section className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-2xl">Your Goals</h2>
-            <span className="text-xs text-psy-subtext">Tap to edit &amp; log</span>
+            <button
+              onClick={() => setShowTrack(true)}
+              className="flex items-center gap-1.5 text-xs font-medium text-psy-primary border border-psy-primary/30 bg-psy-primary/8 px-3 py-1.5 rounded-full hover:bg-psy-primary/15 transition"
+            >
+              <TrendingUp size={13} strokeWidth={2} /> Track
+            </button>
           </div>
           <div className="space-y-2">
             {goals.slice(0, 4).map((g) => {
@@ -253,6 +260,7 @@ export default function DashboardScreen() {
           </Card>
         </Link>
       </section>
+      {showTrack && <TrackModal onClose={() => setShowTrack(false)} />}
     </AppShell>
   );
 }
