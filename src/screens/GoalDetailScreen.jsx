@@ -62,13 +62,19 @@ export default function GoalDetailScreen() {
   const load = async () => {
     setLoading(true);
     try {
-      const [g, l] = await Promise.all([api.getGoal(id), api.listProgressLogs(id)]);
+      const g = await api.getGoal(id);
       setGoal(g);
-      setLogs(l);
       setEditTitle(g.title);
       setEditEstimateValue(g.estimate_value);
       setEditEstimateUnit(g.estimate_unit);
       setEditNotes(g.notes || "");
+      // Progress logs require migration v3 — load separately so missing table doesn't crash the screen
+      try {
+        const l = await api.listProgressLogs(id);
+        setLogs(l);
+      } catch {
+        setLogs([]);
+      }
     } catch (e) {
       setError(e?.message || "Could not load goal");
     } finally {
