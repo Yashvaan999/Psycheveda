@@ -109,17 +109,17 @@ function GoalTrackRow({ goal }) {
   );
 }
 
-export default function TrackModal({ onClose }) {
+export default function TrackModal({ onClose, goalId = null }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api.goalTrackingData()
-      .then(setData)
+      .then((all) => setData(goalId ? all.filter((g) => g.id === goalId) : all))
       .catch((e) => setError(e?.message || "Could not load tracking data"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [goalId]);
 
   return (
     <div

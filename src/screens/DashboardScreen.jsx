@@ -25,7 +25,7 @@ export default function DashboardScreen() {
   const [tasks, setTasks] = useState([]);
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showTrack, setShowTrack] = useState(false);
+  const [trackGoalId, setTrackGoalId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -134,7 +134,7 @@ export default function DashboardScreen() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-2xl">Your Goals</h2>
             <button
-              onClick={() => setShowTrack(true)}
+              onClick={() => setTrackGoalId("all")}
               className="flex items-center gap-1.5 text-xs font-medium text-psy-primary border border-psy-primary/30 bg-psy-primary/8 px-3 py-1.5 rounded-full hover:bg-psy-primary/15 transition"
             >
               <TrendingUp size={13} strokeWidth={2} /> Track
@@ -158,6 +158,13 @@ export default function DashboardScreen() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTrackGoalId(g.id); }}
+                          className="p-1 rounded-lg text-psy-subtext hover:text-psy-primary hover:bg-psy-primary/10 transition"
+                          title="Track probability"
+                        >
+                          <TrendingUp size={13} strokeWidth={1.5} />
+                        </button>
                         <span className="text-xs text-psy-primary font-medium" data-testid={`goal-progress-${g.id}`}>{pct}%</span>
                         <Pencil size={13} strokeWidth={1.5} className="text-psy-subtext" />
                       </div>
@@ -260,7 +267,12 @@ export default function DashboardScreen() {
           </Card>
         </Link>
       </section>
-      {showTrack && <TrackModal onClose={() => setShowTrack(false)} />}
+      {trackGoalId && (
+        <TrackModal
+          onClose={() => setTrackGoalId(null)}
+          goalId={trackGoalId === "all" ? null : trackGoalId}
+        />
+      )}
     </AppShell>
   );
 }
