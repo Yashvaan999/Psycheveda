@@ -22,13 +22,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd mobile && echo \"EXPO_PUBLIC_SUPABASE_URL=$VITE_SUPABASE_URL\" > .env && echo \"EXPO_PUBLIC_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY\" >> .env && CI=1 BROWSER=none npx expo start --web --port 5000 --clear"
+args = "npm run dev"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
