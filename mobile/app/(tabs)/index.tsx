@@ -7,6 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -104,18 +105,26 @@ export default function DashboardScreen() {
     );
   }
 
+  const TAB_BAR_HEIGHT = Platform.OS === 'web' ? 84 : 68;
+
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
+      contentContainerStyle={[
+        styles.content,
+        {
+          paddingTop: Math.max(insets.top, 16) + 8,
+          paddingBottom: insets.bottom + TAB_BAR_HEIGHT + 16,
+        },
+      ]}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={colors.primary} />}
     >
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{greeting()},</Text>
-          <Text style={styles.name}>{firstName}</Text>
+          <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit>{firstName}</Text>
         </View>
         <View style={styles.statsBadges}>
           <View style={styles.statBadge}>
@@ -222,10 +231,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: 20 },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
+  headerLeft: { flex: 1, marginRight: 12 },
   greeting: { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors.subtext },
-  name: { fontFamily: 'Lora_700Bold', fontSize: 26, color: colors.text, marginTop: 2 },
-  statsBadges: { flexDirection: 'row', gap: 8, marginTop: 6 },
+  name: { fontFamily: 'Lora_700Bold', fontSize: 26, color: colors.text, marginTop: 2, flexShrink: 1 },
+  statsBadges: { flexDirection: 'row', gap: 8, flexShrink: 0 },
   statBadge: {
     flexDirection: 'row',
     alignItems: 'center',
