@@ -22,13 +22,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd mobile && CI=1 BROWSER=none EXPO_NO_DEV_TOOLS=1 npx expo start --web --port 5000 --host lan"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000

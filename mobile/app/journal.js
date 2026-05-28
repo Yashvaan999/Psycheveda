@@ -1,0 +1,264 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { BookOpen, History, Sun, Moon } from 'lucide-react-native';
+import api from '../src/lib/api';
+import AppShell from '../src/components/AppShell';
+import { Button, Card, Input, Textarea, Label } from '../src/components/ui';
+import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
+
+const EASE_MIN = 1, EASE_MAX = 10;
+
+export default function Journal() {
+  const router = useRouter();
+  const [frames, setFrames] = useState([]);
+  const [situation, setSituation] = useState('');
+  const [emotion, setEmotion] = useState('');
+  const [initialFrame, setInitialFrame] = useState('');
+  const [nlpFrame, setNlpFrame] = useState('');
+  const [ease, setEase] = useState(5);
+  const [endFeeling, setEndFeeling] = useState('');
+  const [period, setPeriod] = useState(new Date().getHours() < 12 ? 'morning' : 'evening');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => { api.journalFrames().then(setFrames); }, []);
+
+  const valid =
+    situation.trim().length >= 2 &&
+    emotion.trim().length >= 1 &&
+    !!initialFrame && !!nlpFrame &&
+    ease >= 1 && ease <= 10 &&
+    endFeeling.trim().length >= 1;
+
+  const save = async () => {
+    if (!valid) return;
+    setBusy(true); setErr('');
+    try {
+      await api.createJournal({
+        entry_date: new Date().toISOString().slice(0, 10),
+        situation, natural_emotion: emotion,
+        initial_frame: initialFrame, nlp_frame: nlpFrame,
+        ease_of_transition: ease, end_feeling: endFeeling, period,
+      });
+      setDone(true);
+    } catch (e) {
+      setErr(e?.message || 'Could not save entry');
+    } finally { setBusy(false); }
+  };
+
+  if (done) {
+    return (
+      <AppShell>
+        <Card style={{ alignItems: 'center', paddingVertical: 40, gap: 16, marginTop: 40 }}>
+          <View style={styles.checkCircle}>
+            <BookOpen size={28} strokeWidth={1.5} color={colors.secondary} />
+          </View>
+          <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.text }}>
+            Saved with care
+          </Text>
+          <Text style={{ color: colors.subtext, fontSize: 14, textAlign: 'center', fontFamily: fonts.body }}>
+            The unconscious has heard you. Return tomorrow.
+          </Text>
+          <Button onPress={() => router.replace('/dashboard')} style={{ marginTop: 8, alignSelf: 'stretch' }}>
+            Back to dashboard
+          </Button>
+          <Button variant="ghost" onPress={() => {
+            setSituation(''); setEmotion(''); setInitialFrame(''); setNlpFrame('');
+            setEase(5); setEndFeeling(''); setDone(false);
+          }}>Write another</Button>
+        </Card>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <View style={styles.head}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.h1}>Journal</Text>
+          <Text style={styles.sub}>CBT + NLP reframing — name it to tame it.</Text>
+        </View>
+        <Pressable onPress={() => router.push('/journal-history')} style={styles.histBtn}>
+          <History size={16} strokeWidth={1.5} color={colors.subtext} />
+        </Pressable>
+      </View>
+
+      <Card style={{ gap: 16, marginTop: 16 }}>
+        {/* Period */}
+        <View>
+          <Label>Period</Label>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {[
+              { k: 'morning', label: 'Morning', Icon: Sun },
+              { k: 'evening', label: 'Evening', Icon: Moon },
+            ].map(({ k, label, Icon }) => {
+              const active = period === k;
+              return (
+                <Pressable
+                  key={k}
+                  onPress={() => setPeriod(k)}
+                  style={[
+                    styles.periodChip,
+                    active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  ]}
+                >
+                  <Icon size={14} strokeWidth={1.5} color={active ? colors.white : colors.subtext} />
+                  <Text style={[
+                    { color: colors.text, fontSize: 13, fontFamily: fonts.bodyMedium },
+                    active && { color: colors.white },
+                  ]}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Situation */}
+        <View>
+          <Label>1 · The situation</Label>
+          <Textarea
+            value={situation} onChangeText={setSituation}
+            placeholder="Describe the situation as a neutral observer."
+            style={{ minHeight: 90 }}
+          />
+        </View>
+
+        {/* Natural emotion */}
+        <View>
+          <Label>2 · Natural emotion</Label>
+          <Input
+            value={emotion} onChangeText={setEmotion}
+            placeholder="anger, shame, fear (comma-separated)"
+          />
+        </View>
+
+        {/* Initial frame */}
+        <View>
+          <Label>3 · Initial frame</Label>
+          <Text style={styles.helper}>The lens through which you first saw it.</Text>
+          <View style={{ gap: 6, marginTop: 8 }}>
+            {frames.map((f) => {
+              const active = initialFrame === f.key;
+              return (
+                <Pressable key={f.key} onPress={() => setInitialFrame(f.key)}>
+                  <View style={[
+                    styles.frame,
+                    active && { borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.06) },
+                  ]}>
+                    <Text style={[styles.frameTitle, active && { color: colors.primary }]}>{f.key}</Text>
+                    <Text style={styles.frameDesc}>{f.desc}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* NLP frame (reframed) */}
+        <View>
+          <Label>4 · Reframed lens (NLP)</Label>
+          <Text style={styles.helper}>Choose a more empowering frame.</Text>
+          <View style={{ gap: 6, marginTop: 8 }}>
+            {frames.map((f) => {
+              const active = nlpFrame === f.key;
+              return (
+                <Pressable key={f.key} onPress={() => setNlpFrame(f.key)}>
+                  <View style={[
+                    styles.frame,
+                    active && { borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.06) },
+                  ]}>
+                    <Text style={[styles.frameTitle, active && { color: colors.primary }]}>{f.key}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Ease */}
+        <View>
+          <Label>5 · Ease of transition · {ease}/10</Label>
+          <View style={{ flexDirection: 'row', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+            {Array.from({ length: EASE_MAX - EASE_MIN + 1 }, (_, i) => i + EASE_MIN).map((n) => {
+              const active = ease >= n;
+              return (
+                <Pressable
+                  key={n}
+                  onPress={() => setEase(n)}
+                  style={[
+                    styles.easeDot,
+                    active && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  ]}
+                >
+                  <Text style={[
+                    { fontSize: 11, color: colors.subtext, fontFamily: fonts.bodyMedium },
+                    active && { color: colors.white },
+                  ]}>{n}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* End feeling */}
+        <View>
+          <Label>6 · End feeling</Label>
+          <Input
+            value={endFeeling} onChangeText={setEndFeeling}
+            placeholder="How do you feel now?"
+          />
+        </View>
+
+        {err ? (
+          <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>
+        ) : null}
+
+        <Button onPress={save} disabled={busy || !valid}>
+          {busy ? 'Saving…' : 'Save entry'}
+        </Button>
+      </Card>
+    </AppShell>
+  );
+}
+
+const styles = StyleSheet.create({
+  head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  h1: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
+  sub: { color: colors.subtext, fontSize: 14, marginTop: 4, fontFamily: fonts.body },
+  histBtn: {
+    height: 36, width: 36, borderRadius: radius.pill,
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center', marginTop: 4,
+  },
+  helper: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body, lineHeight: 18, marginTop: -4 },
+  frame: {
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
+    padding: 12, borderRadius: radius.lg, gap: 4,
+  },
+  frameTitle: { color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 13 },
+  frameDesc: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body, lineHeight: 18 },
+  periodChip: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 12, borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.xl, backgroundColor: colors.card,
+  },
+  easeDot: {
+    width: 28, height: 28, borderRadius: 14,
+    borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.card,
+  },
+  checkCircle: {
+    height: 64, width: 64, borderRadius: 32,
+    backgroundColor: withAlpha(colors.secondary, 0.15),
+    borderWidth: 1, borderColor: withAlpha(colors.secondary, 0.30),
+    alignItems: 'center', justifyContent: 'center',
+  },
+  errBox: {
+    backgroundColor: colors.dangerSoft, borderWidth: 1, borderColor: colors.dangerBorder,
+    padding: 12, borderRadius: radius.xl,
+  },
+  errText: { color: colors.danger, fontSize: 13, fontFamily: fonts.body },
+});
