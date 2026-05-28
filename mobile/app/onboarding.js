@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Users, Briefcase, Coins, HeartPulse, Sparkles } from 'lucide-react-native';
+import { Check, Users, Briefcase, Coins, HeartPulse, Sparkles, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
 import api from '../src/lib/api';
 import { Button, Card, Input, Label, Textarea } from '../src/components/ui';
@@ -17,7 +17,7 @@ const ICON_MAP = {
 };
 
 export default function OnboardingScreen() {
-  const { refresh } = useAuth();
+  const { refresh, logout } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(1);
@@ -81,6 +81,18 @@ export default function OnboardingScreen() {
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }]}
     >
+      <Pressable
+        onPress={async () => {
+          if (step === 2) { setErr(''); setStep(1); return; }
+          try { await logout(); } catch {}
+          router.replace('/auth');
+        }}
+        hitSlop={10}
+        style={styles.backBtn}
+      >
+        <ArrowLeft size={16} strokeWidth={1.5} color={colors.subtext} />
+        <Text style={styles.backText}>{step === 2 ? 'Back' : 'Sign out'}</Text>
+      </Pressable>
       <Text style={styles.eyebrow}>Step {step} of 2</Text>
       <Text style={styles.h1}>
         {step === 1 ? 'Choose your pillars' : 'Plant your first goals'}
@@ -223,6 +235,11 @@ const styles = StyleSheet.create({
   },
   h1: { fontFamily: fonts.display, fontSize: 30, color: colors.text, marginTop: 8 },
   sub: { color: colors.subtext, fontSize: 14, marginTop: 6, fontFamily: fonts.body, lineHeight: 22 },
+  backBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    alignSelf: 'flex-start', paddingVertical: 6, paddingRight: 10, marginBottom: 8,
+  },
+  backText: { color: colors.subtext, fontSize: 13, fontFamily: fonts.bodyMedium },
   pillarIcon: {
     height: 40, width: 40, borderRadius: radius.lg,
     backgroundColor: withAlpha(colors.secondary, 0.12), borderWidth: 1, borderColor: colors.border,
