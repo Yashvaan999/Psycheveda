@@ -47,7 +47,7 @@ export default function Dashboard() {
   return (
     <AppShell>
       <Text style={styles.greet}>🙏 {firstName}</Text>
-      <Text style={styles.sub}>Today's path of devotion awaits.</Text>
+      <Text style={styles.sub}>Nurture your mind and soul</Text>
 
       {loading ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
