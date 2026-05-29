@@ -51,7 +51,7 @@ export default function AuthScreen() {
           <Text style={styles.brand}>
             Psyche<Text style={{ color: colors.primary }}>veda</Text>
           </Text>
-          <Text style={styles.tag}>Mind science, ancient wisdom.</Text>
+          <Text style={styles.tag}>Empower your mind</Text>
         </View>
 
         <Card style={{ marginTop: 32 }}>
