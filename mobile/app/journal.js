@@ -16,7 +16,7 @@ export default function Journal() {
   const [emotion, setEmotion] = useState('');
   const [initialFrame, setInitialFrame] = useState('');
   const [nlpFrame, setNlpFrame] = useState('');
-  const [ease, setEase] = useState(5);
+  const [ease, setEase] = useState(3);
   const [endFeeling, setEndFeeling] = useState('');
   const [period, setPeriod] = useState(new Date().getHours() < 12 ? 'morning' : 'evening');
   const [err, setErr] = useState('');
@@ -66,7 +66,7 @@ export default function Journal() {
           </Button>
           <Button variant="ghost" onPress={() => {
             setSituation(''); setEmotion(''); setInitialFrame(''); setNlpFrame('');
-            setEase(5); setEndFeeling(''); setDone(false);
+            setEase(3); setEndFeeling(''); setDone(false);
           }}>Write another</Button>
         </Card>
       </AppShell>
