@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Users, Briefcase, Coins, HeartPulse, Sparkles, Flower2, ArrowLeft } from 'lucide-react-native';
+import { Check, Users, Briefcase, Coins, HeartPulse, Sparkles, Leaf, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
 import api from '../src/lib/api';
 import { Button, Card, Input, Label, Textarea } from '../src/components/ui';
@@ -13,7 +13,7 @@ const ICON_MAP = {
   career_business: Briefcase,
   finance_money: Coins,
   health: HeartPulse,
-  inner_wellness: Flower2,
+  inner_wellness: Leaf,
 };
 
 export default function OnboardingScreen() {
