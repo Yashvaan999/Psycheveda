@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <Text style={styles.greet}>Namaste, {firstName}</Text>
+      <Text style={styles.greet}>🙏 {firstName}</Text>
       <Text style={styles.sub}>Today's path of devotion awaits.</Text>
 
       {loading ? (
