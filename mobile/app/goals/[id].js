@@ -25,6 +25,9 @@ export default function GoalDetail() {
   const [trackOpen, setTrackOpen] = useState(false);
   const [logNote, setLogNote] = useState('');
   const [showLogForm, setShowLogForm] = useState(false);
+  const [editLogId, setEditLogId] = useState(null);
+  const [editLogNote, setEditLogNote] = useState('');
+  const [editLogErr, setEditLogErr] = useState('');
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -73,6 +76,18 @@ export default function GoalDetail() {
       load();
       refresh();
     } catch (e) { setLogErr(e?.message || 'Could not log'); }
+    finally { setBusy(false); }
+  };
+
+  const saveLogEdit = async (logId) => {
+    if (!editLogNote.trim()) { setEditLogErr('Progress note cannot be empty.'); return; }
+    setEditLogErr(''); setBusy(true);
+    try {
+      await api.updateProgressLog(logId, editLogNote);
+      setEditLogId(null);
+      setEditLogNote('');
+      load();
+    } catch (e) { setEditLogErr(e?.message || 'Could not update'); }
     finally { setBusy(false); }
   };
 
@@ -207,8 +222,44 @@ export default function GoalDetail() {
           <View style={{ gap: 8, marginTop: 10 }}>
             {logs.map((l) => (
               <Card key={l.id} style={{ padding: 14 }}>
-                <Text style={styles.metaText}>{formatDateTime(l.logged_at)}</Text>
-                {l.note ? <Text style={[styles.body, { marginTop: 6 }]}>{l.note}</Text> : null}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={styles.metaText}>{formatDateTime(l.logged_at)}</Text>
+                  {editLogId !== l.id && (
+                    <Pressable
+                      onPress={() => { setEditLogId(l.id); setEditLogNote(l.note || ''); setEditLogErr(''); }}
+                      hitSlop={8}
+                      style={styles.logEditBtn}
+                    >
+                      <Edit3 size={14} strokeWidth={1.5} color={colors.subtext} />
+                    </Pressable>
+                  )}
+                </View>
+                {editLogId === l.id ? (
+                  <View style={{ gap: 8, marginTop: 8 }}>
+                    <Textarea
+                      value={editLogNote}
+                      onChangeText={(v) => { setEditLogNote(v); if (editLogErr) setEditLogErr(''); }}
+                      style={{ minHeight: 70 }}
+                    />
+                    {editLogErr ? (
+                      <Text style={{ color: colors.danger, fontSize: 13, fontFamily: fonts.body }}>{editLogErr}</Text>
+                    ) : null}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <Button
+                        variant="secondary"
+                        onPress={() => { setEditLogId(null); setEditLogNote(''); setEditLogErr(''); }}
+                        style={{ flex: 1 }}
+                      >Cancel</Button>
+                      <Button
+                        onPress={() => saveLogEdit(l.id)}
+                        disabled={busy || !editLogNote.trim()}
+                        style={{ flex: 1 }}
+                      >{busy ? 'Saving…' : 'Save'}</Button>
+                    </View>
+                  </View>
+                ) : (
+                  l.note ? <Text style={[styles.body, { marginTop: 6 }]}>{l.note}</Text> : null
+                )}
               </Card>
             ))}
           </View>
@@ -236,6 +287,10 @@ const styles = StyleSheet.create({
   body: { color: colors.text, fontSize: 14, fontFamily: fonts.body, lineHeight: 22 },
   meta: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 4 },
   metaText: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body },
+  logEditBtn: {
+    height: 28, width: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
+  },
   label: {
     fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase',
     color: colors.subtext, fontFamily: fonts.bodyMedium, marginBottom: 4,

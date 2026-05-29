@@ -285,6 +285,18 @@ export const api = {
     return data;
   },
 
+  updateProgressLog: async (logId, note) => {
+    const trimmed = (note || '').trim();
+    if (!trimmed) throw new Error('Progress note cannot be empty.');
+    const { data, error } = await supabase
+      .from('goal_progress_logs')
+      .update({ note: trimmed })
+      .eq('id', logId)
+      .select().single();
+    if (error) throw error;
+    return data;
+  },
+
   listProgressLogs: async (goalId) => {
     const { data, error } = await supabase
       .from('goal_progress_logs').select('*')
