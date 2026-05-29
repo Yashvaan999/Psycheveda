@@ -41,7 +41,8 @@ export default function Dashboard() {
     load();
   };
 
-  const firstName = user?.full_name?.split(' ')[0] || 'friend';
+  const rawName = user?.full_name?.split(' ')[0] || 'friend';
+  const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
   return (
     <AppShell>
