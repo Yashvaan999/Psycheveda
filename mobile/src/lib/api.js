@@ -297,6 +297,35 @@ export const api = {
     return data;
   },
 
+  goalReminders: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data: goals, error } = await supabase
+      .from('goals')
+      .select('id, title, pillar, deadline_at, created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const today = new Date().toISOString().slice(0, 10);
+    const loggedToday = new Set();
+    try {
+      const { data: logs } = await supabase
+        .from('goal_progress_logs')
+        .select('goal_id, entry_date')
+        .eq('user_id', user.id)
+        .eq('entry_date', today);
+      for (const l of (logs || [])) loggedToday.add(l.goal_id);
+    } catch { /* table may not exist */ }
+    const now = new Date();
+    return (goals || [])
+      .filter((g) => !loggedToday.has(g.id) && (!g.deadline_at || new Date(g.deadline_at) >= now))
+      .map((g) => ({
+        id: g.id,
+        title: g.title,
+        pillar: g.pillar,
+        pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
+      }));
+  },
+
   listProgressLogs: async (goalId) => {
     const { data, error } = await supabase
       .from('goal_progress_logs').select('*')

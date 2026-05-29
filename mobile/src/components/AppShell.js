@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useRouter, usePathname, Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, BookOpen, Sparkles, LogOut, Heart, Flame } from 'lucide-react-native';
+import { Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, Target } from 'lucide-react-native';
 import { useAuth } from '../lib/auth';
 import api from '../lib/api';
 import { colors, radius, fonts, shadows, withAlpha } from '../lib/theme';
@@ -24,13 +24,16 @@ export default function AppShell({ children }) {
   const insets = useSafeAreaInsets();
   const [blessOpen, setBlessOpen] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [gratLogged, setGratLogged] = useState(null);
+  const [reminders, setReminders] = useState([]);
 
   const refreshStats = useCallback(async () => {
     if (!user) return;
     try {
-      const s = await api.stats();
+      const [s, r] = await Promise.all([api.stats(), api.goalReminders()]);
       setGratLogged(!!s.gratitude_logged_today);
+      setReminders(r || []);
     } catch { /* ignore */ }
   }, [user]);
 
@@ -68,6 +71,17 @@ export default function AppShell({ children }) {
           <Pressable onPress={() => setStreakOpen(true)} style={styles.streakPill}>
             <Flame size={14} strokeWidth={1.8} color={colors.secondary} />
             <Text style={[styles.pillVal, { color: colors.secondary }]}>{streak}</Text>
+          </Pressable>
+
+          <Pressable onPress={() => setNotifOpen(true)} style={styles.bellBtn} hitSlop={8}>
+            <Bell size={18} strokeWidth={1.5} color={colors.subtext} />
+            {reminders.length > 0 ? (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {reminders.length > 9 ? '9+' : reminders.length}
+                </Text>
+              </View>
+            ) : null}
           </Pressable>
 
           <Pressable onPress={handleLogout} style={styles.logoutBtn} hitSlop={8}>
@@ -182,6 +196,49 @@ export default function AppShell({ children }) {
           Skip a day and the count resets to one — gentle as the tide.
         </Text>
       </Modal>
+
+      {/* Notifications / Goal Reminders */}
+      <Modal open={notifOpen} onClose={() => setNotifOpen(false)} title="Reminders">
+        {reminders.length === 0 ? (
+          <View style={{ alignItems: 'center', paddingVertical: 24 }}>
+            <View style={styles.notifEmptyIcon}>
+              <Bell size={24} strokeWidth={1.5} color={colors.secondary} />
+            </View>
+            <Text style={[styles.modalBody, { textAlign: 'center', marginTop: 16 }]}>
+              You're all caught up. Every goal has progress logged today.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.modalBody}>
+              {reminders.length === 1
+                ? 'One goal still awaits today\'s effort:'
+                : `${reminders.length} goals still await today's effort:`}
+            </Text>
+            <View style={{ gap: 10, marginTop: 14 }}>
+              {reminders.map((g) => (
+                <Pressable
+                  key={g.id}
+                  onPress={() => { setNotifOpen(false); router.push(`/goals/${g.id}`); }}
+                  style={styles.notifRow}
+                >
+                  <View style={styles.notifIcon}>
+                    <Target size={16} strokeWidth={1.5} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.notifTitle} numberOfLines={2}>{g.title}</Text>
+                    <Text style={styles.notifPillar}>{g.pillar_label}</Text>
+                  </View>
+                  <Text style={styles.notifCta}>Log</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={[styles.modalBody, { fontStyle: 'italic', fontSize: 12, marginTop: 20 }]}>
+              Log a small effort each day to keep your veda streak alive.
+            </Text>
+          </>
+        )}
+      </Modal>
     </View>
   );
 }
@@ -212,6 +269,33 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: withAlpha(colors.secondary, 0.30),
   },
   pillVal: { fontSize: 13, fontFamily: fonts.bodyMedium },
+  bellBtn: { padding: 8, borderRadius: radius.pill },
+  bellBadge: {
+    position: 'absolute', top: 2, right: 2,
+    minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
+    backgroundColor: colors.primary,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  bellBadgeText: { color: '#fff', fontSize: 9, fontFamily: fonts.bodyMedium },
+  notifEmptyIcon: {
+    height: 56, width: 56, borderRadius: radius.xl,
+    backgroundColor: withAlpha(colors.secondary, 0.15),
+    borderWidth: 1, borderColor: withAlpha(colors.secondary, 0.35),
+    alignItems: 'center', justifyContent: 'center',
+  },
+  notifRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.xl, paddingHorizontal: 14, paddingVertical: 12,
+  },
+  notifIcon: {
+    height: 36, width: 36, borderRadius: radius.lg,
+    backgroundColor: withAlpha(colors.primary, 0.12),
+    alignItems: 'center', justifyContent: 'center',
+  },
+  notifTitle: { color: colors.text, fontSize: 14, fontFamily: fonts.bodyMedium },
+  notifPillar: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body, marginTop: 2 },
+  notifCta: { color: colors.primary, fontSize: 13, fontFamily: fonts.bodyMedium },
   logoutBtn: { padding: 8, borderRadius: radius.pill },
   body: { flex: 1 },
   bodyContent: { paddingTop: 24, paddingHorizontal: 0 },
