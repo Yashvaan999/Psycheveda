@@ -101,7 +101,7 @@ export default function Dashboard() {
                 <Card style={styles.devoCard}>
                   <BookOpen size={20} strokeWidth={1.5} color={colors.primary} />
                   <Text style={styles.devoTitle}>Journal</Text>
-                  <Text style={styles.devoSub}>Reframe a thought</Text>
+                  <Text style={styles.devoSub}>Emotional power</Text>
                   <Badge tone="neutral" style={{ marginTop: 8 }}>
                     {stats.journal_entries_today || 0} today
                   </Badge>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  devoCard: { padding: 16, gap: 6, alignItems: 'flex-start' },
+  devoCard: { padding: 16, gap: 6, alignItems: 'flex-start', flex: 1 },
   devoTitle: { fontFamily: fonts.display, fontSize: 18, color: colors.text, marginTop: 4 },
   devoSub: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body },
   goalIcon: {
