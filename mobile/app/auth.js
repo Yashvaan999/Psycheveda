@@ -11,8 +11,8 @@ export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('yashvaan999@gmail.com');
+  const [password, setPassword] = useState('Happyheart@54321');
   const [fullName, setFullName] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
