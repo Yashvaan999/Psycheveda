@@ -17,7 +17,7 @@ const ICON_MAP = {
 };
 
 export default function OnboardingScreen() {
-  const { refresh, logout } = useAuth();
+  const { refresh } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(1);
@@ -82,16 +82,15 @@ export default function OnboardingScreen() {
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }]}
     >
       <Pressable
-        onPress={async () => {
+        onPress={() => {
           if (step === 2) { setErr(''); setStep(1); return; }
-          try { await logout(); } catch {}
-          router.replace('/auth');
+          router.replace('/dashboard');
         }}
         hitSlop={10}
         style={styles.backBtn}
       >
         <ArrowLeft size={16} strokeWidth={1.5} color={colors.subtext} />
-        <Text style={styles.backText}>{step === 2 ? 'Back' : 'Sign out'}</Text>
+        <Text style={styles.backText}>{step === 2 ? 'Back' : 'Dashboard'}</Text>
       </Pressable>
       <Text style={styles.eyebrow}>Step {step} of 2</Text>
       <Text style={styles.h1}>
