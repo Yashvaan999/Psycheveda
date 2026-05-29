@@ -5,6 +5,7 @@ import {
   ArrowLeft, TrendingUp, Trash2, Edit3, Save, X, Plus,
 } from 'lucide-react-native';
 import api from '../../src/lib/api';
+import { useAuth } from '../../src/lib/auth';
 import AppShell from '../../src/components/AppShell';
 import { Button, Card, Input, Textarea, Label, Badge } from '../../src/components/ui';
 import TrackModal from '../../src/components/TrackModal';
@@ -14,6 +15,7 @@ import { colors, fonts, radius, withAlpha } from '../../src/lib/theme';
 export default function GoalDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { refresh } = useAuth();
   const [goal, setGoal] = useState(null);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,7 @@ export default function GoalDetail() {
       setLogNote('');
       setShowLogForm(false);
       load();
+      refresh();
     } catch (e) { setLogErr(e?.message || 'Could not log'); }
     finally { setBusy(false); }
   };

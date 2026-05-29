@@ -272,6 +272,16 @@ export const api = {
       .insert({ goal_id: goalId, user_id: user.id, note: trimmed })
       .select().single();
     if (error) throw error;
+    try {
+      const { data: profile } = await supabase
+        .from('profiles').select('veda_streak').eq('id', user.id).single();
+      await supabase.from('profiles')
+        .update({
+          veda_streak: (profile?.veda_streak || 0) + 1,
+          last_activity_date: new Date().toISOString().slice(0, 10),
+        })
+        .eq('id', user.id);
+    } catch { /* best-effort */ }
     return data;
   },
 
