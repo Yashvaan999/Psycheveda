@@ -7,7 +7,7 @@ import AppShell from '../src/components/AppShell';
 import { Button, Card, Input, Textarea, Label } from '../src/components/ui';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
-const EASE_MIN = 1, EASE_MAX = 10;
+const EASE_MIN = 1, EASE_MAX = 5;
 
 export default function Journal() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function Journal() {
     situation.trim().length >= 2 &&
     emotion.trim().length >= 1 &&
     !!initialFrame && !!nlpFrame &&
-    ease >= 1 && ease <= 10 &&
+    ease >= 1 && ease <= 5 &&
     endFeeling.trim().length >= 1;
 
   const save = async () => {
@@ -179,7 +179,7 @@ export default function Journal() {
 
         {/* Ease */}
         <View>
-          <Label>5 · Ease of transition · {ease}/10</Label>
+          <Label>5 · Ease of transition · {ease}/5</Label>
           <View style={{ flexDirection: 'row', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
             {Array.from({ length: EASE_MAX - EASE_MIN + 1 }, (_, i) => i + EASE_MIN).map((n) => {
               const active = ease >= n;
