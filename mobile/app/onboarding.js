@@ -217,7 +217,7 @@ export default function OnboardingScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Button variant="secondary" onPress={() => setStep(1)} style={{ flex: 1 }}>Back</Button>
             <Button onPress={finish} disabled={busy} style={{ flex: 2 }}>
-              {busy ? 'Planting…' : 'Plant goals & begin'}
+              {busy ? 'Planting…' : 'Begin'}
             </Button>
           </View>
         </View>
