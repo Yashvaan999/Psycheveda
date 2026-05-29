@@ -83,7 +83,6 @@ export default function Dashboard() {
                     </Pressable>
                     <Text style={[
                       { flex: 1, color: colors.text, fontSize: 14, fontFamily: fonts.body },
-                      t.completed && { textDecorationLine: 'line-through' },
                     ]}>
                       {t.title}
                     </Text>
