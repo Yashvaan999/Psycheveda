@@ -18,7 +18,7 @@ const PILLAR_ICONS = {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const router = useRouter();
   const [goals, setGoals] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -38,6 +38,7 @@ export default function Dashboard() {
 
   const completeTask = async (id) => {
     await api.toggleTask(id);
+    try { await refresh(); } catch { /* best-effort */ }
     load();
   };
 

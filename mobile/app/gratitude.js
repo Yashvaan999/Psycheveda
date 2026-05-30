@@ -7,6 +7,7 @@ import AppShell from '../src/components/AppShell';
 import Modal from '../src/components/Modal';
 import { Button, Card, Textarea, Label } from '../src/components/ui';
 import BlessIcon from '../src/components/BlessIcon';
+import { useAuth } from '../src/lib/auth';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const SUGGESTIONS = {
@@ -44,6 +45,7 @@ const SUGGESTIONS = {
 
 export default function Gratitude() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [b1, setB1] = useState('');
   const [b2, setB2] = useState('');
   const [b3, setB3] = useState('');
@@ -59,6 +61,7 @@ export default function Gratitude() {
         entry_date: new Date().toISOString().slice(0, 10),
         point_1: b1.trim(), point_2: b2.trim(), point_3: b3.trim(),
       });
+      try { await refresh(); } catch { /* best-effort */ }
       setDone(true);
     } catch (e) { console.warn(e); }
     finally { setBusy(false); }
