@@ -63,29 +63,37 @@ export default function AppShell({ children }) {
         </Link>
 
         <View style={styles.headerRight}>
-          <Pressable onPress={() => setBlessOpen(true)} style={styles.blessPill}>
+          <Pressable onPress={() => setBlessOpen(true)} style={styles.iconBtn} hitSlop={6}>
             <BlessIcon size={18} />
-            <Text style={[styles.pillVal, { color: colors.primary }]}>{bless}</Text>
+            {bless > 0 ? (
+              <View style={[styles.cornerBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.cornerBadgeText}>{bless > 99 ? '99+' : bless}</Text>
+              </View>
+            ) : null}
           </Pressable>
 
-          <Pressable onPress={() => setStreakOpen(true)} style={styles.streakPill}>
-            <Flame size={14} strokeWidth={1.8} color={colors.secondary} />
-            <Text style={[styles.pillVal, { color: colors.secondary }]}>{streak}</Text>
+          <Pressable onPress={() => setStreakOpen(true)} style={styles.iconBtn} hitSlop={6}>
+            <Flame size={18} strokeWidth={1.8} color={colors.secondary} />
+            {streak > 0 ? (
+              <View style={[styles.cornerBadge, { backgroundColor: colors.secondary }]}>
+                <Text style={styles.cornerBadgeText}>{streak > 99 ? '99+' : streak}</Text>
+              </View>
+            ) : null}
           </Pressable>
 
-          <Pressable onPress={() => setNotifOpen(true)} style={styles.bellBtn} hitSlop={8}>
+          <Pressable onPress={() => setNotifOpen(true)} style={styles.iconBtn} hitSlop={6}>
             <Bell size={18} strokeWidth={1.5} color={colors.subtext} />
             {reminders.length > 0 ? (
-              <View style={styles.bellBadge}>
-                <Text style={styles.bellBadgeText}>
+              <View style={[styles.cornerBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.cornerBadgeText}>
                   {reminders.length > 9 ? '9+' : reminders.length}
                 </Text>
               </View>
             ) : null}
           </Pressable>
 
-          <Pressable onPress={handleLogout} style={styles.logoutBtn} hitSlop={8}>
-            <LogOut size={18} strokeWidth={1.5} color={colors.subtext} />
+          <Pressable onPress={handleLogout} style={styles.logoutBtn} hitSlop={6}>
+            <LogOut size={16} strokeWidth={1.5} color={withAlpha(colors.subtext, 0.6)} />
           </Pressable>
         </View>
       </View>
@@ -253,30 +261,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   brand: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  blessPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: withAlpha(colors.primary, 0.10),
-    borderWidth: 1, borderColor: withAlpha(colors.primary, 0.30),
-  },
-  streakPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: withAlpha(colors.secondary, 0.10),
-    borderWidth: 1, borderColor: withAlpha(colors.secondary, 0.30),
-  },
-  pillVal: { fontSize: 13, fontFamily: fonts.bodyMedium },
-  bellBtn: { padding: 8, borderRadius: radius.pill },
-  bellBadge: {
-    position: 'absolute', top: 2, right: 2,
-    minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
-    backgroundColor: colors.primary,
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  iconBtn: { padding: 6, borderRadius: radius.pill },
+  cornerBadge: {
+    position: 'absolute', top: -2, right: -2,
+    minWidth: 15, height: 15, borderRadius: 8, paddingHorizontal: 3,
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: colors.bg,
   },
-  bellBadgeText: { color: '#fff', fontSize: 9, fontFamily: fonts.bodyMedium },
+  cornerBadgeText: { color: '#fff', fontSize: 9, fontFamily: fonts.bodyMedium },
   notifEmptyIcon: {
     height: 56, width: 56, borderRadius: radius.xl,
     backgroundColor: withAlpha(colors.secondary, 0.15),
