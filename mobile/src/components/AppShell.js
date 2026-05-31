@@ -8,13 +8,14 @@ import api from '../lib/api';
 import { colors, radius, fonts, shadows, withAlpha } from '../lib/theme';
 import Modal from './Modal';
 import BlessIcon from './BlessIcon';
+import GlowSparkle from './GlowSparkle';
 import { Button } from './ui';
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: Home },
   { to: '/journal', label: 'Journal', icon: BookOpen },
   { to: '/gratitude', label: 'Gratitude', icon: Heart },
-  { to: '/hpa-axis', label: 'Gut-Brain', icon: Sparkles, iconColor: colors.gold },
+  { to: '/hpa-axis', label: 'Gut-Brain', icon: Sparkles, iconColor: colors.gold, glow: true },
 ];
 
 export default function AppShell({ children }) {
@@ -121,11 +122,15 @@ export default function AppShell({ children }) {
             return (
               <Link key={item.to} href={item.to} asChild>
                 <Pressable style={styles.navItem}>
-                  <Icon
-                    size={20}
-                    strokeWidth={1.5}
-                    color={item.iconColor || (active ? colors.primary : colors.subtext)}
-                  />
+                  {item.glow ? (
+                    <GlowSparkle size={20} color={item.iconColor} />
+                  ) : (
+                    <Icon
+                      size={20}
+                      strokeWidth={1.5}
+                      color={item.iconColor || (active ? colors.primary : colors.subtext)}
+                    />
+                  )}
                   <Text style={[
                     styles.navLabel,
                     { color: active ? colors.primary : colors.subtext },

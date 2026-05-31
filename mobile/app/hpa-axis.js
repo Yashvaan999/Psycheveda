@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Sparkles } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { hpaPalettes, getHpaPhase, fonts, radius, withAlpha, colors } from '../src/lib/theme';
+import GlowSparkle from '../src/components/GlowSparkle';
 
 const PHASES = ['cortisol_am', 'twilight', 'melatonin_pm'];
 
@@ -35,7 +36,7 @@ export default function HpaAxis() {
             <ArrowLeft size={20} strokeWidth={1.5} color={p.text} />
           </Pressable>
           <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>Gut-Brain</Text>
-          <Sparkles size={16} strokeWidth={1.5} color={colors.gold} />
+          <GlowSparkle size={16} color={colors.gold} />
         </View>
 
         {/* Hero */}
