@@ -9,6 +9,39 @@ import GlowSparkle from '../src/components/GlowSparkle';
 
 const PHASES = ['cortisol_am', 'twilight', 'melatonin_pm'];
 
+const PHASE_GUIDE = {
+  cortisol_am: [
+    {
+      heading: 'Behavioral (Light Entrainment)',
+      body: 'Step outside within 30 minutes of waking for 10–15 minutes of direct, unfiltered natural sunlight. This sends a photic signal to your hypothalamus to synchronize your central pacemaker. Delay your first cup of coffee or tea by 90–120 minutes to prevent chemical blunting of your natural morning energy curve.',
+    },
+    {
+      heading: 'Dietary (Microbiome Awakening)',
+      body: 'Avoid eating simple sugars or refined starches alone, which trigger a sudden glycemic spike followed by a stress-inducing crash. Instead, start with high-quality protein (like eggs) and prebiotic-rich fibers (such as oats or ground flaxseeds) to nourish "good" gut microbes and stabilize glucose levels.',
+    },
+  ],
+  twilight: [
+    {
+      heading: 'Behavioral (The Somatic Shock)',
+      body: 'If you feel an uncontrollable urge to sleep, do not nap for hours, as this disrupts your nighttime melatonin descent. Instead, practice a physical reset: splash cold water on your face to stimulate the mammalian dive reflex, step into the afternoon light, and take a quick 10-minute walk.',
+    },
+    {
+      heading: 'Dietary (Anti-Crash Stabilization)',
+      body: 'Prevent "cortisol-driven glucose rescues" by avoiding high-sugar afternoon snacks or sweetened drinks. Opt for a glass of spiced, warm buttermilk (chaas) with roasted cumin, or a small handful of raw nuts. This provides stable fats to feed the brain without spiking insulin.',
+    },
+  ],
+  melatonin_pm: [
+    {
+      heading: 'Behavioral (The Digital Sunset)',
+      body: 'Initiate a "digital sunset" by turning off all phones, tablets, and bright overhead lights 60–90 minutes before bed. Use dim, warm amber lamps or candles to signal your pineal gland that the day has ended.',
+    },
+    {
+      heading: 'Dietary (Circadian Fasting Window)',
+      body: 'Avoid late-night eating, which disrupts metabolic sleep cycles and elevates nocturnal stress hormones. Ensure your dinner is light, easily digestible, and eaten at least 3 hours before bed to allow your gut to enter a self-cleaning cycle overnight.',
+    },
+  ],
+};
+
 export default function HpaAxis() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -97,16 +130,12 @@ export default function HpaAxis() {
         </View>
 
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 12 }]}>
-          <Text style={[styles.cardTitle, { color: p.text }]}>Daily attunement</Text>
-          <View style={{ gap: 10, marginTop: 8 }}>
-            {[
-              ['Morning', 'Sunlight within 30 minutes of waking. Protein-rich breakfast.'],
-              ['Midday', 'A 5-minute breath pause. Hydrate. Step outside briefly.'],
-              ['Evening', 'Dim lights after sunset. No screens 60 minutes before sleep.'],
-            ].map(([k, v]) => (
-              <View key={k}>
-                <Text style={[styles.kvKey, { color: p.primary }]}>{k}</Text>
-                <Text style={[styles.cardBody, { color: p.subtext }]}>{v}</Text>
+          <Text style={[styles.cardTitle, { color: p.text }]}>Daily attunement · {p.name}</Text>
+          <View style={{ gap: 16, marginTop: 12 }}>
+            {PHASE_GUIDE[phase].map((entry) => (
+              <View key={entry.heading}>
+                <Text style={[styles.kvKey, { color: p.primary }]}>{entry.heading}</Text>
+                <Text style={[styles.cardBody, { color: p.subtext, marginTop: 4 }]}>{entry.body}</Text>
               </View>
             ))}
           </View>
