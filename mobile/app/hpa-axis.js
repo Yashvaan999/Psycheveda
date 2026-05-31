@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Sparkles } from 'lucide-react-native';
-import { hpaPalettes, getHpaPhase, fonts, radius, withAlpha } from '../src/lib/theme';
+import { hpaPalettes, getHpaPhase, fonts, radius, withAlpha, colors } from '../src/lib/theme';
 
 const PHASES = ['cortisol_am', 'twilight', 'melatonin_pm'];
 
@@ -34,8 +34,8 @@ export default function HpaAxis() {
           <Pressable onPress={() => router.back()} hitSlop={10}>
             <ArrowLeft size={20} strokeWidth={1.5} color={p.text} />
           </Pressable>
-          <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>HPA Axis</Text>
-          <Sparkles size={16} strokeWidth={1.5} color={p.primary} />
+          <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>Gut-Brain</Text>
+          <Sparkles size={16} strokeWidth={1.5} color={colors.gold} />
         </View>
 
         {/* Hero */}
@@ -83,7 +83,7 @@ export default function HpaAxis() {
 
         {/* Education */}
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 24 }]}>
-          <Text style={[styles.cardTitle, { color: p.text }]}>What is the HPA Axis?</Text>
+          <Text style={[styles.cardTitle, { color: p.text }]}>What is the Gut-Brain?</Text>
           <Text style={[styles.cardBody, { color: p.subtext }]}>
             The Hypothalamic-Pituitary-Adrenal axis governs your stress and recovery cycle.
             Cortisol rises with the sun to wake you; melatonin pours at dusk to restore you.

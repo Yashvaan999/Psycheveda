@@ -14,7 +14,7 @@ const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: Home },
   { to: '/journal', label: 'Journal', icon: BookOpen },
   { to: '/gratitude', label: 'Gratitude', icon: Heart },
-  { to: '/hpa-axis', label: 'HPA Axis', icon: Sparkles },
+  { to: '/hpa-axis', label: 'Gut-Brain', icon: Sparkles, iconColor: colors.gold },
 ];
 
 export default function AppShell({ children }) {
@@ -124,7 +124,7 @@ export default function AppShell({ children }) {
                   <Icon
                     size={20}
                     strokeWidth={1.5}
-                    color={active ? colors.primary : colors.subtext}
+                    color={item.iconColor || (active ? colors.primary : colors.subtext)}
                   />
                   <Text style={[
                     styles.navLabel,

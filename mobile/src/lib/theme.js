@@ -67,7 +67,7 @@ export const hpaPalettes = {
     text: '#F9F6F0',
     subtext: '#A39E99',
     label: 'Cortisol Rise',
-    description: 'Morning surge — high-clarity warmth to honor the awakening HPA axis.',
+    description: 'Morning surge — high-clarity warmth to honor the awakening Gut-Brain axis.',
     image: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxzdW5yaXNlJTIwbWlzdCUyMG5hdHVyZXxlbnwwfHx8fDE3NzkxNzg0NzF8MA&ixlib=rb-4.1.0&q=85',
   },
   twilight: {
