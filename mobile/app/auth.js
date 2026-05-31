@@ -55,12 +55,12 @@ export default function AuthScreen() {
         </View>
 
         <Card style={{ marginTop: 32 }}>
-          <Text style={styles.heading}>
-            {mode === 'login' ? 'Welcome back' : 'Begin your practice'}
-          </Text>
+          {mode === 'login' ? null : (
+            <Text style={styles.heading}>Begin your practice</Text>
+          )}
           <Text style={styles.sub}>
             {mode === 'login'
-              ? 'Step back into your daily ritual of clarity.'
+              ? 'Step into your daily ritual of clarity.'
               : 'Five minutes a day. Lasting transformation.'}
           </Text>
 
