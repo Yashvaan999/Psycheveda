@@ -47,7 +47,8 @@ export default function HpaAxis() {
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroInner}>
-            <Text style={[styles.eyebrow, { color: p.primary }]}>{p.label}</Text>
+            <Text style={[styles.eyebrow, { color: p.primary }]}>{p.name}</Text>
+            <Text style={[styles.eyebrowSub, { color: withAlpha(p.primary, 0.65) }]}>{p.label}</Text>
             <Text style={[styles.heroTitle, { color: p.text }]}>
               Attuning your circadian alchemy
             </Text>
@@ -73,7 +74,10 @@ export default function HpaAxis() {
                     { borderColor: withAlpha(pal.primary, active ? 0.6 : 0.25), backgroundColor: withAlpha(pal.primary, active ? 0.18 : 0.06) },
                   ]}
                 >
-                  <Text style={{ color: pal.text, fontSize: 11, fontFamily: fonts.bodyMedium, textAlign: 'center' }}>
+                  <Text style={{ color: pal.text, fontSize: 12, fontFamily: fonts.bodyMedium, textAlign: 'center' }}>
+                    {pal.name}
+                  </Text>
+                  <Text style={{ color: withAlpha(pal.text, 0.55), fontSize: 8, fontFamily: fonts.body, textAlign: 'center', marginTop: 1 }}>
                     {pal.label}
                   </Text>
                 </Pressable>
@@ -118,6 +122,9 @@ const styles = StyleSheet.create({
   heroInner: { padding: 24, paddingTop: 120 },
   eyebrow: {
     fontSize: 11, letterSpacing: 1.8, textTransform: 'uppercase', fontFamily: fonts.bodyMedium,
+  },
+  eyebrowSub: {
+    fontSize: 8, letterSpacing: 1, textTransform: 'uppercase', fontFamily: fonts.body, marginTop: 2,
   },
   heroTitle: { fontFamily: fonts.display, fontSize: 26, marginTop: 8, lineHeight: 32 },
   heroDesc: { fontSize: 14, marginTop: 12, fontFamily: fonts.body, lineHeight: 22 },
