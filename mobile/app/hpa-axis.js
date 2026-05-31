@@ -130,7 +130,8 @@ export default function HpaAxis() {
         </View>
 
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 12 }]}>
-          <Text style={[styles.cardTitle, { color: p.text }]}>Daily attunement · {p.name}</Text>
+          <Text style={[styles.cardTitle, { color: p.text }]}>Daily Reset</Text>
+          <Text style={[styles.kvKey, { color: p.primary, marginTop: 2 }]}>{p.name}</Text>
           <View style={{ gap: 16, marginTop: 12 }}>
             {PHASE_GUIDE[phase].map((entry) => (
               <View key={entry.heading}>
