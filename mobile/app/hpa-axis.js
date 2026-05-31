@@ -50,7 +50,7 @@ export default function HpaAxis() {
             <Text style={[styles.eyebrow, { color: p.primary }]}>{p.name}</Text>
             <Text style={[styles.eyebrowSub, { color: withAlpha(p.primary, 0.65) }]}>{p.label}</Text>
             <Text style={[styles.heroTitle, { color: p.text }]}>
-              Attuning your circadian alchemy
+              Tuning your circadium alchemy
             </Text>
             <Text style={[styles.heroDesc, { color: p.subtext }]}>
               {p.description}
