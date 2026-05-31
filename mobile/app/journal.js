@@ -1,13 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BookOpen, History, Sun, Moon } from 'lucide-react-native';
+import { BookOpen, History, Sun, Moon, Lightbulb } from 'lucide-react-native';
 import api from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
+import Modal from '../src/components/Modal';
 import { Button, Card, Input, Textarea, Label } from '../src/components/ui';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const EASE_MIN = 1, EASE_MAX = 5;
+
+const SUGGESTIONS = {
+  situation: {
+    theme: 'The situation',
+    intro: 'Describe what happened as a neutral observer — just the facts, no interpretation or blame.',
+    ideas: [
+      'My manager critiqued my report in front of the team during the meeting.',
+      'A friend cancelled our plans an hour before we were set to meet.',
+      'I sent a message and did not get a reply for the whole day.',
+      'I made a mistake on a task I had done many times before.',
+    ],
+  },
+  emotion: {
+    theme: 'Natural emotion',
+    intro: 'Name the raw feelings that surfaced first — before any reasoning. Single words work best.',
+    ideas: [
+      'anger, frustration',
+      'shame, embarrassment',
+      'fear, anxiety',
+      'sadness, disappointment',
+    ],
+  },
+};
 
 export default function Journal() {
   const router = useRouter();
@@ -22,6 +46,7 @@ export default function Journal() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [tip, setTip] = useState(null);
 
   useEffect(() => { api.journalFrames().then(setFrames); }, []);
 
@@ -117,20 +142,31 @@ export default function Journal() {
 
         {/* Situation */}
         <View>
-          <Label>1 · The situation</Label>
+          <View style={styles.labelRow}>
+            <Label style={{ marginBottom: 0 }}>1 · The situation</Label>
+            <Pressable onPress={() => setTip('situation')} hitSlop={8} style={styles.tipBtn}>
+              <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
+            </Pressable>
+          </View>
           <Textarea
             value={situation} onChangeText={setSituation}
             placeholder="Describe the situation as a neutral observer."
-            style={{ minHeight: 90 }}
+            style={{ minHeight: 90, marginTop: 6 }}
           />
         </View>
 
         {/* Natural emotion */}
         <View>
-          <Label>2 · Natural emotion</Label>
+          <View style={styles.labelRow}>
+            <Label style={{ marginBottom: 0 }}>2 · Natural emotion</Label>
+            <Pressable onPress={() => setTip('emotion')} hitSlop={8} style={styles.tipBtn}>
+              <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
+            </Pressable>
+          </View>
           <Input
             value={emotion} onChangeText={setEmotion}
             placeholder="anger, shame, fear (comma-separated)"
+            style={{ marginTop: 6 }}
           />
         </View>
 
@@ -170,6 +206,7 @@ export default function Journal() {
                     active && { borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.06) },
                   ]}>
                     <Text style={[styles.frameTitle, active && { color: colors.primary }]}>{f.key}</Text>
+                    <Text style={styles.frameDesc}>{f.desc}</Text>
                   </View>
                 </Pressable>
               );
@@ -219,6 +256,26 @@ export default function Journal() {
           {busy ? 'Saving…' : 'Save entry'}
         </Button>
       </Card>
+
+      <Modal
+        open={tip !== null}
+        onClose={() => setTip(null)}
+        title={tip ? SUGGESTIONS[tip].theme : ''}
+      >
+        {tip ? (
+          <View style={{ gap: 12 }}>
+            <Text style={styles.tipIntro}>{SUGGESTIONS[tip].intro}</Text>
+            <View style={{ gap: 10 }}>
+              {SUGGESTIONS[tip].ideas.map((idea, i) => (
+                <View key={i} style={styles.ideaRow}>
+                  <View style={styles.dot} />
+                  <Text style={styles.ideaText}>{idea}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+      </Modal>
     </AppShell>
   );
 }
@@ -261,4 +318,18 @@ const styles = StyleSheet.create({
     padding: 12, borderRadius: radius.xl,
   },
   errText: { color: colors.danger, fontSize: 13, fontFamily: fonts.body },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tipBtn: {
+    height: 26, width: 26, borderRadius: 13,
+    backgroundColor: withAlpha(colors.primary, 0.12),
+    borderWidth: 1, borderColor: withAlpha(colors.primary, 0.30),
+    alignItems: 'center', justifyContent: 'center',
+  },
+  tipIntro: { color: colors.text, fontSize: 15, fontFamily: fonts.bodyMedium, lineHeight: 22 },
+  ideaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  dot: {
+    width: 6, height: 6, borderRadius: 3, marginTop: 8,
+    backgroundColor: colors.primary,
+  },
+  ideaText: { flex: 1, color: colors.subtext, fontSize: 14, fontFamily: fonts.body, lineHeight: 21 },
 });
