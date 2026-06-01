@@ -65,7 +65,7 @@ export default function HpaAxis() {
       >
         {/* Top bar */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
+          <Pressable onPress={() => router.replace('/dashboard')} hitSlop={10}>
             <ArrowLeft size={20} strokeWidth={1.5} color={p.text} />
           </Pressable>
           <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>Gut-Brain</Text>
