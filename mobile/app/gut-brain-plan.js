@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages } from 'lucide-react-native';
@@ -73,6 +73,19 @@ export default function GutBrainPlanScreen() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 850, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 850, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  const pulseScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
 
   const total = QUESTIONS.length;
   const current = QUESTIONS[idx];
@@ -170,14 +183,16 @@ export default function GutBrainPlanScreen() {
             <ArrowLeft size={20} strokeWidth={1.6} color={colors.subtext} />
           </Pressable>
           <Text style={styles.counter}>Question {idx + 1} of {total}</Text>
-          <Pressable
-            onPress={() => setLang((l) => (l === 'en' ? 'hi' : 'en'))}
-            hitSlop={8}
-            style={styles.langBtn}
-          >
-            <Languages size={15} strokeWidth={1.7} color={colors.primary} />
-            <Text style={styles.langText}>{lang === 'en' ? 'EN' : 'हिं'}</Text>
-          </Pressable>
+          <Animated.View style={{ transform: [{ scale: pulseScale }] }}>
+            <Pressable
+              onPress={() => setLang((l) => (l === 'en' ? 'hi' : 'en'))}
+              hitSlop={8}
+              style={styles.langBtn}
+            >
+              <Languages size={15} strokeWidth={1.7} color={colors.primary} />
+              <Text style={styles.langText}>{lang === 'en' ? 'EN' : 'हिं'}</Text>
+            </Pressable>
+          </Animated.View>
         </View>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${pct}%` }]} />
