@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck } from 'lucide-react-native';
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages } from 'lucide-react-native';
 import api from '../src/lib/api';
 import { Button } from '../src/components/ui';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
-const OPTIONS = ['Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree'];
+const OPTIONS = [
+  { value: 'Strongly Agree', en: 'Strongly Agree', hi: 'पूरी तरह सहमत' },
+  { value: 'Agree', en: 'Agree', hi: 'सहमत' },
+  { value: 'Neutral', en: 'Neutral', hi: 'तटस्थ' },
+  { value: 'Disagree', en: 'Disagree', hi: 'असहमत' },
+  { value: 'Strongly Disagree', en: 'Strongly Disagree', hi: 'पूरी तरह असहमत' },
+];
 
 const QUESTIONS = [
   { id: 1, en: 'Do you have a clear direction and purpose in life?', hi: 'क्या आपके पास जीवन में एक स्पष्ट दिशा और उद्देश्य है?' },
@@ -51,6 +57,7 @@ export default function GutBrainPlanScreen() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
+  const [lang, setLang] = useState('en');
 
   useEffect(() => {
     let active = true;
@@ -123,7 +130,7 @@ export default function GutBrainPlanScreen() {
 
   if (done) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.screen, { paddingTop: insets.top + 28 }]}>
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.exitBtn}>
           <ArrowLeft size={18} strokeWidth={1.6} color={colors.subtext} />
           <Text style={styles.exitText}>Gut-Brain</Text>
@@ -148,16 +155,24 @@ export default function GutBrainPlanScreen() {
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 12 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top + 28 }]}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.exitIcon}>
-          <ArrowLeft size={20} strokeWidth={1.6} color={colors.subtext} />
-        </Pressable>
-        <View style={{ flex: 1 }}>
+        <View style={styles.topRow}>
+          <Pressable onPress={() => router.back()} hitSlop={10} style={styles.exitIcon}>
+            <ArrowLeft size={20} strokeWidth={1.6} color={colors.subtext} />
+          </Pressable>
           <Text style={styles.counter}>Question {idx + 1} of {total}</Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${pct}%` }]} />
-          </View>
+          <Pressable
+            onPress={() => setLang((l) => (l === 'en' ? 'hi' : 'en'))}
+            hitSlop={8}
+            style={styles.langBtn}
+          >
+            <Languages size={15} strokeWidth={1.7} color={colors.primary} />
+            <Text style={styles.langText}>{lang === 'en' ? 'EN' : 'हिं'}</Text>
+          </Pressable>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${pct}%` }]} />
         </View>
       </View>
 
@@ -167,16 +182,15 @@ export default function GutBrainPlanScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.qNum}>{String(idx + 1).padStart(2, '0')}</Text>
-        <Text style={styles.qEn}>{current.en}</Text>
-        <Text style={styles.qHi}>{current.hi}</Text>
+        <Text style={styles.qEn}>{lang === 'en' ? current.en : current.hi}</Text>
 
         <View style={{ gap: 10, marginTop: 24 }}>
           {OPTIONS.map((opt) => {
-            const active = selected === opt;
+            const active = selected === opt.value;
             return (
               <Pressable
-                key={opt}
-                onPress={() => choose(opt)}
+                key={opt.value}
+                onPress={() => choose(opt.value)}
                 style={({ pressed }) => [
                   styles.option,
                   active && styles.optionActive,
@@ -186,7 +200,7 @@ export default function GutBrainPlanScreen() {
                 <View style={[styles.radio, active && styles.radioActive]}>
                   {active && <Check size={12} strokeWidth={3} color={colors.white} />}
                 </View>
-                <Text style={[styles.optionText, active && { color: colors.primary }]}>{opt}</Text>
+                <Text style={[styles.optionText, active && { color: colors.primary }]}>{lang === 'en' ? opt.en : opt.hi}</Text>
               </Pressable>
             );
           })}
@@ -237,9 +251,18 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   topBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 20, paddingBottom: 16,
   },
+  topRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12,
+  },
+  langBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingVertical: 6, paddingHorizontal: 10, borderRadius: radius.pill,
+    borderWidth: 1, borderColor: withAlpha(colors.primary, 0.3),
+    backgroundColor: withAlpha(colors.primary, 0.07),
+  },
+  langText: { color: colors.primary, fontSize: 12, fontFamily: fonts.bodyMedium },
   exitIcon: { paddingVertical: 4, paddingRight: 2 },
   exitBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -247,8 +270,9 @@ const styles = StyleSheet.create({
   },
   exitText: { color: colors.subtext, fontSize: 13, fontFamily: fonts.bodyMedium },
   counter: {
+    flex: 1,
     fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase',
-    color: colors.subtext, fontFamily: fonts.bodyMedium, marginBottom: 8,
+    color: colors.subtext, fontFamily: fonts.bodyMedium,
   },
   progressTrack: {
     height: 6, borderRadius: 999, backgroundColor: withAlpha(colors.primary, 0.14), overflow: 'hidden',
@@ -260,7 +284,6 @@ const styles = StyleSheet.create({
   },
   qNum: { fontFamily: fonts.display, fontSize: 40, color: withAlpha(colors.primary, 0.4) },
   qEn: { fontFamily: fonts.display, fontSize: 23, color: colors.text, marginTop: 4, lineHeight: 31 },
-  qHi: { fontFamily: fonts.body, fontSize: 15, color: colors.subtext, marginTop: 10, lineHeight: 24 },
   option: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
