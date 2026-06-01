@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages } from 'lucide-react-native';
 import api from '../src/lib/api';
 import { Button } from '../src/components/ui';
+import Modal from '../src/components/Modal';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const OPTIONS = [
@@ -58,6 +59,7 @@ export default function GutBrainPlanScreen() {
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
   const [lang, setLang] = useState('en');
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -99,6 +101,12 @@ export default function GutBrainPlanScreen() {
 
   const goNext = () => { if (!isLast) setIdx((i) => i + 1); };
   const goPrev = () => { if (idx > 0) setIdx((i) => i - 1); };
+
+  const handleBack = () => {
+    if (allAnswered) { router.back(); return; }
+    setConfirmLeave(true);
+  };
+  const leaveNow = () => { setConfirmLeave(false); router.back(); };
 
   const submit = async () => {
     setSaving(true);
@@ -158,7 +166,7 @@ export default function GutBrainPlanScreen() {
     <View style={[styles.screen, { paddingTop: insets.top + 28 }]}>
       <View style={styles.topBar}>
         <View style={styles.topRow}>
-          <Pressable onPress={() => router.back()} hitSlop={10} style={styles.exitIcon}>
+          <Pressable onPress={handleBack} hitSlop={10} style={styles.exitIcon}>
             <ArrowLeft size={20} strokeWidth={1.6} color={colors.subtext} />
           </Pressable>
           <Text style={styles.counter}>Question {idx + 1} of {total}</Text>
@@ -243,6 +251,15 @@ export default function GutBrainPlanScreen() {
           </Pressable>
         )}
       </View>
+
+      <Modal open={confirmLeave} onClose={() => setConfirmLeave(false)}>
+        <Text style={styles.confirmMsg}>A few minutes of patience helps us foresee our future.</Text>
+        <Text style={styles.confirmSub}>You haven't finished the assessment yet. Would you like to stay and continue?</Text>
+        <View style={styles.confirmRow}>
+          <Button onPress={() => setConfirmLeave(false)} style={{ flex: 1 }}>Stay</Button>
+          <Button variant="secondary" onPress={leaveNow} style={{ flex: 1 }}>Go back</Button>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -321,4 +338,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft, borderWidth: 1, borderColor: colors.dangerBorder,
   },
   errText: { color: colors.danger, fontSize: 13, fontFamily: fonts.body, lineHeight: 20 },
+  confirmMsg: { fontFamily: fonts.display, fontSize: 21, color: colors.text, lineHeight: 29 },
+  confirmSub: { fontFamily: fonts.body, fontSize: 14, color: colors.subtext, marginTop: 10, lineHeight: 22 },
+  confirmRow: { flexDirection: 'row', gap: 12, marginTop: 24 },
 });
