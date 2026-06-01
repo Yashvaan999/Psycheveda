@@ -204,7 +204,10 @@ export default function GutBrainPlanScreen() {
             })}
           </View>
 
-          <Button onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 28 }}>
+          <Button onPress={() => {}} style={{ alignSelf: 'stretch', marginTop: 28 }}>
+            Elevate Yourself
+          </Button>
+          <Button variant="secondary" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 12 }}>
             Back to Gut-Brain
           </Button>
           <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 16, marginBottom: 8 }}>
@@ -247,7 +250,7 @@ export default function GutBrainPlanScreen() {
         <Text style={styles.qNum}>{String(idx + 1).padStart(2, '0')}</Text>
         <Text style={styles.qEn}>{lang === 'en' ? current.en : current.hi}</Text>
 
-        <View style={{ gap: 10, marginTop: 24 }}>
+        <View style={{ gap: 8, marginTop: 16 }}>
           {OPTIONS.map((opt) => {
             const active = selected === opt.value;
             return (
@@ -351,23 +354,23 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: '100%', borderRadius: 999, backgroundColor: colors.primary },
   body: {
-    paddingHorizontal: 22, paddingTop: 12, paddingBottom: 32,
+    paddingHorizontal: 22, paddingTop: 8, paddingBottom: 20,
     maxWidth: 640, width: '100%', alignSelf: 'center',
   },
-  qNum: { fontFamily: fonts.display, fontSize: 40, color: withAlpha(colors.primary, 0.4) },
-  qEn: { fontFamily: fonts.display, fontSize: 23, color: colors.text, marginTop: 4, lineHeight: 31 },
+  qNum: { fontFamily: fonts.display, fontSize: 26, color: withAlpha(colors.primary, 0.4) },
+  qEn: { fontFamily: fonts.display, fontSize: 17, color: colors.text, marginTop: 2, lineHeight: 23 },
   option: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.xl, paddingVertical: 16, paddingHorizontal: 18,
+    borderRadius: radius.xl, paddingVertical: 12, paddingHorizontal: 16,
   },
   optionActive: { borderColor: colors.primary, backgroundColor: withAlpha(colors.primary, 0.06) },
   radio: {
-    height: 22, width: 22, borderRadius: 11, borderWidth: 1.5, borderColor: colors.border,
+    height: 20, width: 20, borderRadius: 10, borderWidth: 1.5, borderColor: colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
   radioActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  optionText: { flex: 1, color: colors.text, fontSize: 15, fontFamily: fonts.bodyMedium },
+  optionText: { flex: 1, color: colors.text, fontSize: 14, fontFamily: fonts.bodyMedium },
   bottomBar: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20, paddingTop: 12,
