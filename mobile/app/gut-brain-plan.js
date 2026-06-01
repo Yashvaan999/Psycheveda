@@ -254,8 +254,6 @@ export default function GutBrainPlanScreen() {
             <>
               <Text style={styles.infoScore}>Your score: {result.subParameters[infoKey]}%</Text>
               <Text style={styles.infoWhat}>{SUB_BY_KEY[infoKey].what}</Text>
-              <Text style={styles.infoHowLabel}>How this is calculated</Text>
-              <Text style={styles.infoHow}>{SUB_BY_KEY[infoKey].how}</Text>
             </>
           ) : null}
         </Modal>
