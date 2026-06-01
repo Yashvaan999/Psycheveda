@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages } from 'lucide-react-native';
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info } from 'lucide-react-native';
 import api from '../src/lib/api';
 import { Button } from '../src/components/ui';
 import Modal from '../src/components/Modal';
@@ -10,12 +10,39 @@ import calculateSuccessIdentity from '../src/lib/successIdentity';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const SUB_LABELS = [
-  { key: 'bioEnergy', label: 'Bio-Energy Balance' },
-  { key: 'cognitive', label: 'Cognitive Performance' },
-  { key: 'goalReadiness', label: 'Goal-Pursuit Readiness' },
-  { key: 'physicalAsset', label: 'Physical Base Asset' },
-  { key: 'stressResistance', label: 'Stress & Anxiety Resistance' },
+  {
+    key: 'bioEnergy',
+    label: 'Bio-Energy Balance',
+    what: 'Reflects how steady your daily energy is — your blood-sugar stability, freedom from afternoon crashes, mental clarity, and how little you lean on caffeine or sugar to get through the day.',
+    how: 'Built from your answers on brain fog, sugar/carb cravings, post-meal crashes, the afternoon dip, stimulant reliance, and general tiredness. Each answer scores from +2 (best) to −2 (worst), and a fully neutral set lands at 50%. The more your answers point to stable, stimulant-free energy, the higher the percentage.',
+  },
+  {
+    key: 'cognitive',
+    label: 'Cognitive Performance',
+    what: 'Measures your mental sharpness and follow-through — how well you adapt, focus, carry yourself with confidence, finish what you start, and resist procrastination or excuses.',
+    how: 'Based on your answers about adaptability, sustained focus, achieving goals, standing tall with confidence, procrastination, and making excuses. Answers are scored +2 to −2 and normalised so a neutral profile is 50%. More agreement with the positive traits (and less with procrastination/excuses) raises your score.',
+  },
+  {
+    key: 'goalReadiness',
+    label: 'Goal-Pursuit Readiness',
+    what: 'Captures how primed you are to chase and reach your goals — your sense of direction, drive, and motivation — blended with the overall strength of your positive habits.',
+    how: 'Combines your answers on life direction/purpose, drive to succeed, and motivation, plus the average of all your positive-trait responses across the whole assessment. Each component is scored +2 to −2 and normalised to a percentage, with 50% as the neutral midpoint.',
+  },
+  {
+    key: 'physicalAsset',
+    label: 'Physical Base Asset',
+    what: 'Represents the physical foundation your performance rests on — digestion, exercise, body weight, nutrition, freedom from chronic pain, and medications with heavy side-effects.',
+    how: 'Drawn from your answers on digestive issues, exercise frequency, medication side-effects, weight, healthy eating, and chronic pain. Each is scored +2 to −2; healthier answers push the percentage up, while a neutral profile sits at 50%.',
+  },
+  {
+    key: 'stressResistance',
+    label: 'Stress & Anxiety Resistance',
+    what: 'Gauges how well you stay steady under pressure — your calmness, resilience to criticism and overwhelm, and freedom from anxiety, low mood, and mood swings.',
+    how: 'Calculated from your answers on stress, feeling overwhelmed, sensitivity to criticism, daily calmness, low mood, anxiety, intrusive thoughts, and mood swings. Each answer scores +2 to −2 and is normalised so neutral equals 50% — the calmer and more resilient your answers, the higher the score.',
+  },
 ];
+
+const SUB_BY_KEY = Object.fromEntries(SUB_LABELS.map((s) => [s.key, s]));
 
 const OPTIONS = [
   { value: 'Strongly Agree', en: 'Strongly Agree', hi: 'पूरी तरह सहमत' },
@@ -69,6 +96,7 @@ export default function GutBrainPlanScreen() {
   const [err, setErr] = useState('');
   const [lang, setLang] = useState('en');
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [infoKey, setInfoKey] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -193,7 +221,12 @@ export default function GutBrainPlanScreen() {
               return (
                 <View key={s.key}>
                   <View style={styles.subHead}>
-                    <Text style={styles.subLabel}>{s.label}</Text>
+                    <View style={styles.subLabelRow}>
+                      <Text style={styles.subLabel}>{s.label}</Text>
+                      <Pressable onPress={() => setInfoKey(s.key)} hitSlop={8} style={styles.infoBtn}>
+                        <Info size={15} strokeWidth={1.8} color={colors.subtext} />
+                      </Pressable>
+                    </View>
                     <Text style={styles.subPct}>{v}%</Text>
                   </View>
                   <View style={styles.barTrack}>
@@ -207,13 +240,25 @@ export default function GutBrainPlanScreen() {
           <Button onPress={() => {}} style={{ alignSelf: 'stretch', marginTop: 28 }}>
             Elevate Yourself
           </Button>
-          <Button variant="secondary" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 12 }}>
-            Back to Gut-Brain
-          </Button>
           <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 16, marginBottom: 8 }}>
             <Text style={styles.retakeText}>Retake the assessment</Text>
           </Pressable>
         </ScrollView>
+
+        <Modal
+          open={!!infoKey}
+          onClose={() => setInfoKey(null)}
+          title={infoKey ? SUB_BY_KEY[infoKey].label : ''}
+        >
+          {infoKey ? (
+            <>
+              <Text style={styles.infoScore}>Your score: {result.subParameters[infoKey]}%</Text>
+              <Text style={styles.infoWhat}>{SUB_BY_KEY[infoKey].what}</Text>
+              <Text style={styles.infoHowLabel}>How this is calculated</Text>
+              <Text style={styles.infoHow}>{SUB_BY_KEY[infoKey].how}</Text>
+            </>
+          ) : null}
+        </Modal>
       </View>
     );
   }
@@ -418,9 +463,18 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start', fontFamily: fonts.display, fontSize: 19,
     color: colors.text, marginTop: 30, marginBottom: 18,
   },
-  subHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 },
+  subHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  subLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   subLabel: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
-  subPct: { fontFamily: fonts.display, fontSize: 15, color: colors.primary },
+  infoBtn: { padding: 2 },
+  subPct: { fontFamily: fonts.display, fontSize: 15, color: colors.primary, marginLeft: 8 },
+  infoScore: { fontFamily: fonts.display, fontSize: 18, color: colors.primary, marginBottom: 12 },
+  infoWhat: { fontFamily: fonts.body, fontSize: 14, color: colors.text, lineHeight: 22 },
+  infoHowLabel: {
+    fontFamily: fonts.bodyMedium, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase',
+    color: colors.subtext, marginTop: 18, marginBottom: 6,
+  },
+  infoHow: { fontFamily: fonts.body, fontSize: 13.5, color: colors.subtext, lineHeight: 21 },
   barTrack: {
     alignSelf: 'stretch', width: '100%', height: 8, borderRadius: 999,
     backgroundColor: withAlpha(colors.primary, 0.14), overflow: 'hidden',
