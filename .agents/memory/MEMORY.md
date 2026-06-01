@@ -1,2 +1,3 @@
 - [Expo Router server SSR + Supabase](expo-ssr-supabase.md) — `output:"server"` SSRs every page in Node; Supabase client crashes on WebSocket + AsyncStorage `window`. Shim both server-side.
 - [mobile/ is a separate npm project](mobile-npm-project.md) — package-management tool installs at workspace root, not mobile/; install there manually with `--legacy-peer-deps`.
+- [Elevate plan generation](elevate-plan-generation.md) — plan generation is local rule-based (no AI); output shape must stay in lockstep with its goal-creation consumer.

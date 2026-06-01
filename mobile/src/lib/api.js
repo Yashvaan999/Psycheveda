@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { buildElevatePlan } from './elevatePlan';
 
 const PILLAR_LABELS = {
   family_relationship: 'Family & Relationship',
@@ -532,30 +533,15 @@ export const api = {
     return { success: true };
   },
 
-  // Calls the server-side Expo Router API route which runs the LLM with the
-  // Psycheveda prompt and returns a GeneratedPlan JSON object.
+  // Builds a customized GeneratedPlan from the user's input matrix using the
+  // Psycheveda rules. Fully local — no AI or network call — so it works
+  // instantly with no API key.
   generateElevatePlan: async (matrix) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    const res = await fetch('/elevate-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(matrix),
-    });
-    if (!res.ok) {
-      let msg = 'We could not generate your plan right now. Please try again.';
-      try {
-        const j = await res.json();
-        if (j?.error) msg = j.error;
-      } catch { /* keep default message */ }
-      throw new Error(msg);
+    const plan = buildElevatePlan(matrix);
+    if (!plan || !Array.isArray(plan.dailyTasks) || plan.dailyTasks.length === 0) {
+      throw new Error('We could not build your plan right now. Please try again.');
     }
-    const data = await res.json();
-    if (!data?.plan) throw new Error('We could not generate your plan right now. Please try again.');
-    return data.plan;
+    return plan;
   },
 
   // Turns a GeneratedPlan into a trackable goal (source 'elevate') with one
