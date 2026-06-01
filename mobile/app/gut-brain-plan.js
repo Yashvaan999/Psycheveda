@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +6,16 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages 
 import api from '../src/lib/api';
 import { Button } from '../src/components/ui';
 import Modal from '../src/components/Modal';
+import calculateSuccessIdentity from '../src/lib/successIdentity';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
+
+const SUB_LABELS = [
+  { key: 'bioEnergy', label: 'Bio-Energy Balance' },
+  { key: 'cognitive', label: 'Cognitive Performance' },
+  { key: 'goalReadiness', label: 'Goal-Pursuit Readiness' },
+  { key: 'physicalAsset', label: 'Physical Base Asset' },
+  { key: 'stressResistance', label: 'Stress & Anxiety Resistance' },
+];
 
 const OPTIONS = [
   { value: 'Strongly Agree', en: 'Strongly Agree', hi: 'पूरी तरह सहमत' },
@@ -87,6 +96,11 @@ export default function GutBrainPlanScreen() {
   }, [pulse]);
   const pulseScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
 
+  const result = useMemo(() => {
+    const arr = Object.entries(answers).map(([k, v]) => ({ questionId: Number(k), value: v }));
+    return calculateSuccessIdentity(arr);
+  }, [answers]);
+
   const total = QUESTIONS.length;
   const current = QUESTIONS[idx];
   const selected = answers[current.id];
@@ -156,21 +170,47 @@ export default function GutBrainPlanScreen() {
           <ArrowLeft size={18} strokeWidth={1.6} color={colors.subtext} />
           <Text style={styles.exitText}>Gut-Brain</Text>
         </Pressable>
-        <View style={styles.center}>
+        <ScrollView contentContainerStyle={styles.resultBody} showsVerticalScrollIndicator={false}>
           <View style={styles.doneIcon}>
-            <ClipboardCheck size={30} strokeWidth={1.6} color={colors.primary} />
+            <ClipboardCheck size={28} strokeWidth={1.6} color={colors.primary} />
           </View>
-          <Text style={styles.doneTitle}>Plan recorded</Text>
-          <Text style={styles.doneSub}>
-            Your responses have been saved. Your personalised result will appear here once it's ready.
-          </Text>
-          <Button onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 24 }}>
+          <Text style={styles.resultEyebrow}>YOUR SUCCESS IDENTITY</Text>
+          <Text style={styles.tierName}>{result.assignedTier}</Text>
+          <Text style={styles.tierDesc}>{result.tierDescription}</Text>
+
+          <View style={styles.overallCard}>
+            <Text style={styles.overallPct}>{result.overallPercentage}%</Text>
+            <Text style={styles.overallLabel}>Overall Identity Score</Text>
+            <View style={styles.barTrack}>
+              <View style={[styles.barFill, { width: `${result.overallPercentage}%` }]} />
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>Parameter Breakdown</Text>
+          <View style={{ gap: 18, alignSelf: 'stretch', width: '100%' }}>
+            {SUB_LABELS.map((s) => {
+              const v = result.subParameters[s.key];
+              return (
+                <View key={s.key}>
+                  <View style={styles.subHead}>
+                    <Text style={styles.subLabel}>{s.label}</Text>
+                    <Text style={styles.subPct}>{v}%</Text>
+                  </View>
+                  <View style={styles.barTrack}>
+                    <View style={[styles.barFill, { width: `${v}%` }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          <Button onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 28 }}>
             Back to Gut-Brain
           </Button>
-          <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 14 }}>
+          <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 16, marginBottom: 8 }}>
             <Text style={styles.retakeText}>Retake the assessment</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -345,8 +385,44 @@ const styles = StyleSheet.create({
     height: 64, width: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center',
     backgroundColor: withAlpha(colors.primary, 0.12), borderWidth: 1, borderColor: withAlpha(colors.primary, 0.25),
   },
-  doneTitle: { fontFamily: fonts.display, fontSize: 26, color: colors.text, marginTop: 20 },
-  doneSub: { fontFamily: fonts.body, fontSize: 14, color: colors.subtext, textAlign: 'center', marginTop: 10, lineHeight: 22 },
+  resultBody: {
+    paddingHorizontal: 24, paddingTop: 8, paddingBottom: 40,
+    alignItems: 'center', maxWidth: 640, width: '100%', alignSelf: 'center',
+  },
+  resultEyebrow: {
+    marginTop: 18, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase',
+    color: colors.subtext, fontFamily: fonts.bodyMedium,
+  },
+  tierName: {
+    fontFamily: fonts.display, fontSize: 38, color: colors.primary,
+    marginTop: 6, letterSpacing: 1, textAlign: 'center',
+  },
+  tierDesc: {
+    fontFamily: fonts.body, fontSize: 13.5, color: colors.subtext,
+    textAlign: 'center', marginTop: 8, lineHeight: 21, paddingHorizontal: 8,
+  },
+  overallCard: {
+    alignSelf: 'stretch', width: '100%', alignItems: 'center', marginTop: 26,
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.xxl, paddingVertical: 24, paddingHorizontal: 20,
+  },
+  overallPct: { fontFamily: fonts.display, fontSize: 52, color: colors.text, lineHeight: 56 },
+  overallLabel: {
+    fontFamily: fonts.bodyMedium, fontSize: 12, letterSpacing: 1,
+    textTransform: 'uppercase', color: colors.subtext, marginTop: 2, marginBottom: 16,
+  },
+  sectionTitle: {
+    alignSelf: 'flex-start', fontFamily: fonts.display, fontSize: 19,
+    color: colors.text, marginTop: 30, marginBottom: 18,
+  },
+  subHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 },
+  subLabel: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+  subPct: { fontFamily: fonts.display, fontSize: 15, color: colors.primary },
+  barTrack: {
+    alignSelf: 'stretch', width: '100%', height: 8, borderRadius: 999,
+    backgroundColor: withAlpha(colors.primary, 0.14), overflow: 'hidden',
+  },
+  barFill: { height: '100%', borderRadius: 999, backgroundColor: colors.primary },
   retakeText: { color: colors.subtext, fontSize: 13, fontFamily: fonts.bodyMedium, textDecorationLine: 'underline' },
   errBox: {
     marginTop: 20, padding: 14, borderRadius: radius.xl,
