@@ -500,6 +500,123 @@ export const api = {
     if (error) throw error;
     return data;
   },
+
+  fetchProfileDemographics: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return {};
+    const { data } = await supabase
+      .from('profiles')
+      .select('age, gender, occupation, marital_status, region, food_preference, wake_time, sleep_time')
+      .eq('id', user.id)
+      .single();
+    return data || {};
+  },
+
+  saveProfileDemographics: async (d) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        age: d.age ? Number(d.age) : null,
+        gender: d.gender || null,
+        occupation: d.occupation || null,
+        marital_status: d.marital_status || null,
+        region: d.region || null,
+        food_preference: d.food_preference || null,
+        wake_time: d.wake_time || null,
+        sleep_time: d.sleep_time || null,
+      })
+      .eq('id', user.id);
+    if (error) throw error;
+    return { success: true };
+  },
+
+  // Calls the server-side Expo Router API route which runs the LLM with the
+  // Psycheveda prompt and returns a GeneratedPlan JSON object.
+  generateElevatePlan: async (matrix) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    const res = await fetch('/elevate-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(matrix),
+    });
+    if (!res.ok) {
+      let msg = 'We could not generate your plan right now. Please try again.';
+      try {
+        const j = await res.json();
+        if (j?.error) msg = j.error;
+      } catch { /* keep default message */ }
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    if (!data?.plan) throw new Error('We could not generate your plan right now. Please try again.');
+    return data.plan;
+  },
+
+  // Turns a GeneratedPlan into a trackable goal (source 'elevate') with one
+  // mini_task per dailyTask per day across the macro-habit duration.
+  createElevateGoal: async (plan) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const duration = Math.max(1, Math.min(31, Number(plan.macroGoalDurationDays) || 7));
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + duration);
+
+    const { data: goal, error } = await supabase
+      .from('goals')
+      .insert({
+        user_id: user.id,
+        pillar: 'inner_wellness',
+        title: plan.planTitle || 'Your Elevation Plan',
+        estimate_unit: 'days',
+        estimate_value: duration,
+        deadline_at: deadline.toISOString(),
+        source: 'elevate',
+        notes: 'Personalised daily plan generated to elevate your Success Identity by one tier.',
+      })
+      .select()
+      .single();
+    if (error) throw error;
+
+    const dailyTasks = Array.isArray(plan.dailyTasks) ? plan.dailyTasks : [];
+    const tasks = [];
+    for (let i = 0; i < duration; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      for (const t of dailyTasks) {
+        if (!t?.taskTitle) continue;
+        tasks.push({
+          goal_id: goal.id,
+          title: t.taskTitle,
+          scheduled_for: dateStr,
+          source: 'elevate',
+          time_window: t.timeWindow || null,
+          scheduled_time: t.scheduledTimeRelative || null,
+          justification: t.psychologicalJustification || null,
+        });
+      }
+    }
+
+    if (tasks.length === 0) {
+      // A plan with no trackable tasks is useless; roll back the goal.
+      await supabase.from('goals').delete().eq('id', goal.id);
+      throw new Error('The plan came back without any daily tasks. Please try again.');
+    }
+
+    const { error: tasksError } = await supabase.from('mini_tasks').insert(tasks);
+    if (tasksError) {
+      // Don't leave an Elevate goal with no tasks to track. Roll back.
+      await supabase.from('goals').delete().eq('id', goal.id);
+      throw tasksError;
+    }
+    return goal;
+  },
 };
 
 export default api;

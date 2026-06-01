@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  ArrowLeft, TrendingUp, Trash2, Edit3, Save, X, Plus,
+  ArrowLeft, TrendingUp, Trash2, Edit3, Save, X, Plus, Rocket,
 } from 'lucide-react-native';
 import api from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
@@ -105,8 +105,14 @@ export default function GoalDetail() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={20} strokeWidth={1.5} color={colors.subtext} />
         </Pressable>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <Badge tone="sage">{goal.pillar_label}</Badge>
+          {goal.source === 'elevate' && (
+            <Badge tone="primary">
+              <Rocket size={11} strokeWidth={1.8} color={colors.primary} />
+              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, color: colors.primary }}>Elevate</Text>
+            </Badge>
+          )}
         </View>
         <Pressable onPress={() => setTrackOpen(true)} hitSlop={10} style={styles.iconBtn}>
           <TrendingUp size={16} strokeWidth={1.5} color={colors.primary} />

@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-nati
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
   Plus, Target, BookOpen, Heart, TrendingUp,
-  Users, Briefcase, Coins, HeartPulse, Sparkles, ChevronRight, Check,
+  Users, Briefcase, Coins, HeartPulse, Sparkles, ChevronRight, Check, Rocket,
 } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
 import api from '../src/lib/api';
@@ -82,11 +82,21 @@ export default function Dashboard() {
                         {t.completed && <Check size={14} strokeWidth={3} color={colors.white} />}
                       </View>
                     </Pressable>
-                    <Text style={[
-                      { flex: 1, color: colors.text, fontSize: 14, fontFamily: fonts.body },
-                    ]}>
-                      {t.title}
-                    </Text>
+                    {t.source === 'elevate' && (
+                      <View style={styles.elevateTaskIcon}>
+                        <Rocket size={12} strokeWidth={1.8} color={colors.primary} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontSize: 14, fontFamily: fonts.body }}>
+                        {t.title}
+                      </Text>
+                      {t.source === 'elevate' && (t.time_window || t.scheduled_time) ? (
+                        <Text style={styles.elevateTaskMeta}>
+                          {[t.time_window, t.scheduled_time].filter(Boolean).join(' · ')}
+                        </Text>
+                      ) : null}
+                    </View>
                   </Card>
                 ))}
               </View>
@@ -146,11 +156,23 @@ export default function Dashboard() {
                     <Pressable key={g.id} onPress={() => router.push(`/goals/${g.id}`)}>
                       <Card style={{ padding: 16 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          <View style={styles.goalIcon}>
-                            <Icon size={16} strokeWidth={1.5} color={colors.secondary} />
+                          <View style={[
+                            styles.goalIcon,
+                            g.source === 'elevate' && { backgroundColor: withAlpha(colors.primary, 0.14) },
+                          ]}>
+                            {g.source === 'elevate'
+                              ? <Rocket size={16} strokeWidth={1.6} color={colors.primary} />
+                              : <Icon size={16} strokeWidth={1.5} color={colors.secondary} />}
                           </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={styles.goalLabel}>{g.pillar_label}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={styles.goalLabel}>{g.pillar_label}</Text>
+                              {g.source === 'elevate' && (
+                                <View style={styles.elevateTag}>
+                                  <Text style={styles.elevateTagText}>ELEVATE</Text>
+                                </View>
+                              )}
+                            </View>
                             <Text style={styles.goalTitle} numberOfLines={2}>{g.title}</Text>
                           </View>
                           <ChevronRight size={16} strokeWidth={1.5} color={colors.subtext} />
@@ -195,6 +217,21 @@ const styles = StyleSheet.create({
     color: colors.subtext, fontFamily: fonts.bodyMedium,
   },
   goalTitle: { fontSize: 14, color: colors.text, fontFamily: fonts.bodyMedium, marginTop: 2 },
+  elevateTag: {
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.pill,
+    backgroundColor: withAlpha(colors.primary, 0.12),
+    borderWidth: 1, borderColor: withAlpha(colors.primary, 0.30),
+  },
+  elevateTagText: {
+    fontSize: 8, letterSpacing: 1, color: colors.primary, fontFamily: fonts.bodyMedium,
+  },
+  elevateTaskIcon: {
+    height: 24, width: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: withAlpha(colors.primary, 0.12),
+  },
+  elevateTaskMeta: {
+    fontSize: 11, color: colors.primary, fontFamily: fonts.bodyMedium, marginTop: 2,
+  },
   trackPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill,

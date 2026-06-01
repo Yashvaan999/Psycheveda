@@ -1,2 +1,2 @@
-- [Deferred: subscription paywall](subscription-paywall.md) — 7-day trial then lock Journal+Gratitude (goals always free); Gut-Brain ₹195/mo add-on; bless→coupon 1000=₹5; placeholder checkout. NOT YET BUILT.
-- [Supabase schema is migration-file driven](supabase-migrations.md) — app uses external Supabase; schema changes go in database/supabase_migration_v*.sql and the USER runs them; anon key cannot run DDL.
+- [Expo Router server SSR + Supabase](expo-ssr-supabase.md) — `output:"server"` SSRs every page in Node; Supabase client crashes on WebSocket + AsyncStorage `window`. Shim both server-side.
+- [mobile/ is a separate npm project](mobile-npm-project.md) — package-management tool installs at workspace root, not mobile/; install there manually with `--legacy-peer-deps`.

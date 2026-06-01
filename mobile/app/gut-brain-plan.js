@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info } from 'lucide-react-native';
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info, Rocket } from 'lucide-react-native';
 import api from '../src/lib/api';
-import { Button } from '../src/components/ui';
+import { Button, Input, Label } from '../src/components/ui';
 import Modal from '../src/components/Modal';
 import calculateSuccessIdentity from '../src/lib/successIdentity';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
@@ -97,6 +97,13 @@ export default function GutBrainPlanScreen() {
   const [lang, setLang] = useState('en');
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [infoKey, setInfoKey] = useState(null);
+  const [elevateOpen, setElevateOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [elevateErr, setElevateErr] = useState('');
+  const [form, setForm] = useState({
+    age: '', gender: '', occupation: '', marital_status: '',
+    region: '', food_preference: '', wake_time: '', sleep_time: '',
+  });
 
   useEffect(() => {
     let active = true;
@@ -183,6 +190,55 @@ export default function GutBrainPlanScreen() {
     persist({}, false);
   };
 
+  const lowestParameter = useMemo(() => {
+    const entries = Object.entries(result.subParameters || {});
+    if (entries.length === 0) return null;
+    const [key] = entries.sort((a, b) => a[1] - b[1])[0];
+    return SUB_BY_KEY[key]?.label || null;
+  }, [result]);
+
+  const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const openElevate = async () => {
+    setElevateErr('');
+    setElevateOpen(true);
+    try {
+      const d = await api.fetchProfileDemographics();
+      setForm((f) => ({
+        age: d.age != null ? String(d.age) : f.age,
+        gender: d.gender || f.gender,
+        occupation: d.occupation || f.occupation,
+        marital_status: d.marital_status || f.marital_status,
+        region: d.region || f.region,
+        food_preference: d.food_preference || f.food_preference,
+        wake_time: d.wake_time || f.wake_time,
+        sleep_time: d.sleep_time || f.sleep_time,
+      }));
+    } catch { /* prefill is best-effort */ }
+  };
+
+  const runElevate = async () => {
+    setGenerating(true);
+    setElevateErr('');
+    try {
+      await api.saveProfileDemographics(form);
+      const plan = await api.generateElevatePlan({
+        ...form,
+        current_tier: result.assignedTier,
+        lowest_parameter: lowestParameter,
+      });
+      const goal = await api.createElevateGoal(plan);
+      setElevateOpen(false);
+      router.push(`/goals/${goal.id}`);
+    } catch (e) {
+      setElevateErr(e?.message || 'We could not generate your plan right now. Please try again.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const FOOD_OPTIONS = ['Vegetarian', 'Non-Vegetarian', 'Vegan'];
+
   if (loading) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
@@ -237,8 +293,9 @@ export default function GutBrainPlanScreen() {
             })}
           </View>
 
-          <Button onPress={() => {}} style={{ alignSelf: 'stretch', marginTop: 28 }}>
-            Elevate Yourself
+          <Button onPress={openElevate} style={{ alignSelf: 'stretch', marginTop: 28 }}>
+            <Rocket size={17} strokeWidth={1.8} color={colors.white} />
+            <Text style={{ color: colors.white, fontFamily: fonts.bodyMedium, fontSize: 15 }}>Elevate Yourself</Text>
           </Button>
           <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 16, marginBottom: 8 }}>
             <Text style={styles.retakeText}>Retake the assessment</Text>
@@ -256,6 +313,93 @@ export default function GutBrainPlanScreen() {
               <Text style={styles.infoWhat}>{SUB_BY_KEY[infoKey].what}</Text>
             </>
           ) : null}
+        </Modal>
+
+        <Modal open={elevateOpen} onClose={() => !generating && setElevateOpen(false)} title="Elevate Yourself">
+          <Text style={styles.elevateIntro}>
+            Tell us a little about your life and rhythm. We'll craft a personalised daily plan to lift you one tier higher.
+          </Text>
+
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Label>Age</Label>
+              <Input
+                value={form.age}
+                onChangeText={(v) => setField('age', v.replace(/[^0-9]/g, ''))}
+                keyboardType="number-pad"
+                placeholder="e.g. 28"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Label>Gender</Label>
+              <Input value={form.gender} onChangeText={(v) => setField('gender', v)} placeholder="e.g. Female" />
+            </View>
+          </View>
+
+          <View style={{ marginTop: 12 }}>
+            <Label>Occupation</Label>
+            <Input value={form.occupation} onChangeText={(v) => setField('occupation', v)} placeholder="e.g. Software engineer" />
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Label>Marital status</Label>
+              <Input value={form.marital_status} onChangeText={(v) => setField('marital_status', v)} placeholder="e.g. Single" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Label>Region</Label>
+              <Input value={form.region} onChangeText={(v) => setField('region', v)} placeholder="e.g. Mumbai" />
+            </View>
+          </View>
+
+          <View style={{ marginTop: 12 }}>
+            <Label>Food preference</Label>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {FOOD_OPTIONS.map((opt) => {
+                const active = form.food_preference === opt;
+                return (
+                  <Pressable
+                    key={opt}
+                    onPress={() => setField('food_preference', opt)}
+                    style={[styles.foodChip, active && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                  >
+                    <Text style={[styles.foodChipText, active && { color: colors.white }]}>{opt}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Label>Wake time</Label>
+              <Input value={form.wake_time} onChangeText={(v) => setField('wake_time', v)} placeholder="e.g. 6:30 AM" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Label>Sleep time</Label>
+              <Input value={form.sleep_time} onChangeText={(v) => setField('sleep_time', v)} placeholder="e.g. 11:00 PM" />
+            </View>
+          </View>
+
+          {elevateErr ? (
+            <View style={styles.errBox}>
+              <Text style={styles.errText}>{elevateErr}</Text>
+            </View>
+          ) : null}
+
+          <Button onPress={runElevate} disabled={generating} style={{ marginTop: 20 }}>
+            {generating ? (
+              <>
+                <ActivityIndicator color={colors.white} size="small" />
+                <Text style={{ color: colors.white, fontFamily: fonts.bodyMedium, fontSize: 15 }}>Crafting your plan…</Text>
+              </>
+            ) : (
+              <>
+                <Rocket size={17} strokeWidth={1.8} color={colors.white} />
+                <Text style={{ color: colors.white, fontFamily: fonts.bodyMedium, fontSize: 15 }}>Generate my plan</Text>
+              </>
+            )}
+          </Button>
         </Modal>
       </View>
     );
@@ -484,6 +628,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft, borderWidth: 1, borderColor: colors.dangerBorder,
   },
   errText: { color: colors.danger, fontSize: 13, fontFamily: fonts.body, lineHeight: 20 },
+  elevateIntro: { fontFamily: fonts.body, fontSize: 14, color: colors.subtext, lineHeight: 21, marginBottom: 18 },
+  foodChip: {
+    flex: 1, paddingVertical: 12, borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.xl, alignItems: 'center', backgroundColor: colors.card,
+  },
+  foodChipText: { color: colors.text, fontSize: 12, fontFamily: fonts.bodyMedium },
   confirmMsg: { fontFamily: fonts.display, fontSize: 21, color: colors.text, lineHeight: 29 },
   confirmSub: { fontFamily: fonts.body, fontSize: 14, color: colors.subtext, marginTop: 10, lineHeight: 22 },
   confirmRow: { flexDirection: 'row', gap: 12, marginTop: 24 },
