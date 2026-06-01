@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, ClipboardList } from 'lucide-react-native';
 import { hpaPalettes, getHpaPhase, fonts, radius, withAlpha, colors } from '../src/lib/theme';
 import GlowSparkle from '../src/components/GlowSparkle';
 
@@ -132,7 +132,18 @@ export default function HpaAxis() {
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 12 }]}>
           <Text style={[styles.cardTitle, { color: p.text }]}>Daily Reset</Text>
           <Text style={[styles.kvKey, { color: p.primary, marginTop: 2 }]}>{p.name}</Text>
-          <View style={{ gap: 16, marginTop: 12 }}>
+          <Pressable
+            onPress={() => router.push('/gut-brain-plan')}
+            style={({ pressed }) => [
+              styles.planBtn,
+              { backgroundColor: p.primary },
+              pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
+            ]}
+          >
+            <ClipboardList size={16} strokeWidth={1.8} color={p.bg} />
+            <Text style={[styles.planBtnText, { color: p.bg }]}>Plan</Text>
+          </Pressable>
+          <View style={{ gap: 16, marginTop: 18 }}>
             {PHASE_GUIDE[phase].map((entry) => (
               <View key={entry.heading}>
                 <Text style={[styles.kvKey, { color: p.primary }]}>{entry.heading}</Text>
@@ -158,6 +169,12 @@ const styles = StyleSheet.create({
   },
   heroTitle: { fontFamily: fonts.display, fontSize: 26, marginTop: 8, lineHeight: 32 },
   heroDesc: { fontSize: 14, marginTop: 12, fontFamily: fonts.body, lineHeight: 22 },
+  planBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    alignSelf: 'flex-start', marginTop: 14,
+    paddingVertical: 10, paddingHorizontal: 22, borderRadius: radius.pill,
+  },
+  planBtnText: { fontSize: 14, fontFamily: fonts.bodyMedium },
   sectionLabel: {
     fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', fontFamily: fonts.bodyMedium,
   },

@@ -466,6 +466,40 @@ export const api = {
       gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
     };
   },
+
+  getGutBrainAssessment: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    try {
+      const { data } = await supabase
+        .from('gut_brain_assessments')
+        .select('answers, completed')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  saveGutBrainAssessment: async ({ answers, completed = false }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const payload = {
+      user_id: user.id,
+      answers: answers || {},
+      completed,
+      updated_at: new Date().toISOString(),
+    };
+    if (completed) payload.completed_at = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('gut_brain_assessments')
+      .upsert(payload, { onConflict: 'user_id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
 };
 
 export default api;
