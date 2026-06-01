@@ -250,7 +250,7 @@ export default function GutBrainPlanScreen() {
   if (done) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top + 28 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.exitBtn}>
+        <Pressable onPress={() => router.replace('/hpa-axis')} hitSlop={10} style={styles.exitBtn}>
           <ArrowLeft size={18} strokeWidth={1.6} color={colors.subtext} />
           <Text style={styles.exitText}>Gut-Brain</Text>
         </Pressable>
