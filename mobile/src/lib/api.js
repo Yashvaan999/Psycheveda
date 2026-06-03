@@ -273,6 +273,18 @@ export const api = {
       .insert({ goal_id: goalId, user_id: user.id, note: trimmed })
       .select().single();
     if (error) throw error;
+    // Updating the main task for a day auto-ticks that day's mini-task(s) for
+    // this goal, so the user doesn't have to check them off separately on the
+    // dashboard.
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      await supabase
+        .from('mini_tasks')
+        .update({ completed: true, completed_at: new Date().toISOString() })
+        .eq('goal_id', goalId)
+        .eq('scheduled_for', today)
+        .eq('completed', false);
+    } catch { /* best-effort */ }
     try {
       const { data: profile } = await supabase
         .from('profiles').select('veda_streak').eq('id', user.id).single();
