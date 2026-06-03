@@ -98,7 +98,6 @@ export default function HpaAxis() {
 
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 12 }]}>
           <Text style={[styles.cardTitle, { color: p.text }]}>Daily Reset</Text>
-          <Text style={[styles.kvKey, { color: p.primary, marginTop: 2 }]}>{p.name}</Text>
           <Pressable
             onPress={() => router.push('/gut-brain-plan')}
             style={({ pressed }) => [
