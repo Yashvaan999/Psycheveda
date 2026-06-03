@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Image } from 'react-native';
 import { useRouter, usePathname, Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, Target } from 'lucide-react-native';
@@ -57,9 +57,12 @@ export default function AppShell({ children }) {
       <View style={[styles.header, { paddingTop: topPad, paddingBottom: 12 }]}>
         <Link href="/dashboard" asChild>
           <Pressable>
-            <Text style={styles.brand}>
-              Psyche<Text style={{ color: colors.primary }}>veda</Text>
-            </Text>
+            <Image
+              source={require('../../assets/brand-logo.png')}
+              style={styles.brandLogo}
+              resizeMode="contain"
+              accessibilityLabel="Psycheveda — empower your mind"
+            />
           </Pressable>
         </Link>
 
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: colors.border,
     gap: 12,
   },
-  brand: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+  brandLogo: { width: 58, height: 40 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   iconBtn: { padding: 6, borderRadius: radius.pill },
   cornerBadge: {
