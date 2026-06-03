@@ -108,7 +108,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, maxWidth: 480, width: '100%', alignSelf: 'center' },
   brandWrap: { alignItems: 'center', marginTop: 12 },
-  logo: { width: 260, height: 178 },
+  logo: { width: 180, height: 123 },
   heading: { fontFamily: fonts.display, fontSize: 26, color: colors.text },
   sub: { color: colors.subtext, fontSize: 14, marginTop: 6, fontFamily: fonts.body },
   errBox: {
