@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../src/lib/auth';
 import { Button, Card, Input, Label, Divider } from '../src/components/ui';
-import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
+import { colors, fonts, radius } from '../src/lib/theme';
 
 export default function AuthScreen() {
   const { login, register } = useAuth();
@@ -45,13 +45,12 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brandWrap}>
-          <View style={styles.mark}>
-            <Text style={styles.markText}>p</Text>
-          </View>
-          <Text style={styles.brand}>
-            Psyche<Text style={{ color: colors.primary }}>veda</Text>
-          </Text>
-          <Text style={styles.tag}>Empower your mind</Text>
+          <Image
+            source={require('../assets/brand-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="Psycheveda — empower your mind"
+          />
         </View>
 
         <Card style={{ marginTop: 32 }}>
@@ -109,15 +108,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, maxWidth: 480, width: '100%', alignSelf: 'center' },
   brandWrap: { alignItems: 'center', marginTop: 12 },
-  mark: {
-    height: 64, width: 64, borderRadius: radius.xxl,
-    backgroundColor: withAlpha(colors.primary, 0.12),
-    borderWidth: 1, borderColor: withAlpha(colors.primary, 0.30),
-    alignItems: 'center', justifyContent: 'center',
-  },
-  markText: { fontSize: 36, color: colors.primary, fontFamily: fonts.display },
-  brand: { fontFamily: fonts.display, fontSize: 32, color: colors.text, marginTop: 14 },
-  tag: { color: colors.subtext, marginTop: 6, fontFamily: fonts.body },
+  logo: { width: 260, height: 178 },
   heading: { fontFamily: fonts.display, fontSize: 26, color: colors.text },
   sub: { color: colors.subtext, fontSize: 14, marginTop: 6, fontFamily: fonts.body },
   errBox: {
