@@ -9,6 +9,8 @@ import { useAuth } from '../../src/lib/auth';
 import AppShell from '../../src/components/AppShell';
 import { Button, Card, Input, Textarea, Label, Badge } from '../../src/components/ui';
 import TrackModal from '../../src/components/TrackModal';
+import ElevateSubtaskHistory from '../../src/components/ElevateSubtaskHistory';
+import { probColorForScore } from '../../src/lib/utils';
 import { formatDateLong, formatDateTime } from '../../src/lib/utils';
 import { colors, fonts, radius, withAlpha } from '../../src/lib/theme';
 
@@ -28,13 +30,23 @@ export default function GoalDetail() {
   const [editLogId, setEditLogId] = useState(null);
   const [editLogNote, setEditLogNote] = useState('');
   const [editLogErr, setEditLogErr] = useState('');
+  const [elevateTracking, setElevateTracking] = useState(null);
 
   const load = useCallback(async () => {
     if (!id) return;
     try {
-      const [g, l] = await Promise.all([api.getGoal(id), api.listProgressLogs(id)]);
+      const g = await api.getGoal(id);
       setGoal(g);
-      setLogs(l);
+      if (g.source === 'elevate') {
+        setLogs([]);
+        api.goalTrackingData()
+          .then((rows) => setElevateTracking(rows.find((r) => r.id === id) || null))
+          .catch(() => setElevateTracking(null));
+      } else {
+        setElevateTracking(null);
+        const l = await api.listProgressLogs(id);
+        setLogs(l);
+      }
       setEdit({
         title: g.title,
         estimate_value: String(g.estimate_value), estimate_unit: g.estimate_unit,
@@ -194,83 +206,110 @@ export default function GoalDetail() {
         )}
       </Card>
 
-      {/* Progress logging */}
-      <View style={styles.section}>
-        <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle}>Progress logs</Text>
-          <Pressable onPress={() => setShowLogForm((v) => !v)} style={styles.addBtn}>
-            <Plus size={14} strokeWidth={2} color={colors.primary} />
-          </Pressable>
-        </View>
-
-        {showLogForm && (
-          <Card style={{ gap: 10 }}>
-            <Label>Today's progress</Label>
-            <Textarea
-              value={logNote} onChangeText={(v) => { setLogNote(v); if (logErr) setLogErr(''); }}
-              placeholder="What did you do today?"
-              style={{ minHeight: 80 }}
-            />
-            {logErr ? <Text style={{ color: colors.danger, fontSize: 13, fontFamily: fonts.body }}>{logErr}</Text> : null}
-            <Button onPress={logProgress} disabled={busy || !logNote.trim()}>
-              {busy ? 'Logging…' : 'Log progress'}
-            </Button>
-          </Card>
-        )}
-
-        {logs.length === 0 ? (
-          <Card style={{ marginTop: 10 }}>
-            <Text style={{ color: colors.subtext, fontFamily: fonts.body }}>
-              No progress logged yet. Start with one small action today.
+      {goal.source === 'elevate' && elevateTracking && (
+        <Card style={{ marginTop: 16, gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={styles.sectionTitle}>Completion probability</Text>
+            <Text style={{
+              fontSize: 22,
+              fontFamily: fonts.display,
+              color: probColorForScore(elevateTracking.probability).text,
+            }}>
+              {elevateTracking.probability}%
             </Text>
-          </Card>
-        ) : (
-          <View style={{ gap: 8, marginTop: 10 }}>
-            {logs.map((l) => (
-              <Card key={l.id} style={{ padding: 14 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={styles.metaText}>{formatDateTime(l.logged_at)}</Text>
-                  {editLogId !== l.id && (
-                    <Pressable
-                      onPress={() => { setEditLogId(l.id); setEditLogNote(l.note || ''); setEditLogErr(''); }}
-                      hitSlop={8}
-                      style={styles.logEditBtn}
-                    >
-                      <Edit3 size={14} strokeWidth={1.5} color={colors.subtext} />
-                    </Pressable>
-                  )}
-                </View>
-                {editLogId === l.id ? (
-                  <View style={{ gap: 8, marginTop: 8 }}>
-                    <Textarea
-                      value={editLogNote}
-                      onChangeText={(v) => { setEditLogNote(v); if (editLogErr) setEditLogErr(''); }}
-                      style={{ minHeight: 70 }}
-                    />
-                    {editLogErr ? (
-                      <Text style={{ color: colors.danger, fontSize: 13, fontFamily: fonts.body }}>{editLogErr}</Text>
-                    ) : null}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <Button
-                        variant="secondary"
-                        onPress={() => { setEditLogId(null); setEditLogNote(''); setEditLogErr(''); }}
-                        style={{ flex: 1 }}
-                      >Cancel</Button>
-                      <Button
-                        onPress={() => saveLogEdit(l.id)}
-                        disabled={busy || !editLogNote.trim()}
-                        style={{ flex: 1 }}
-                      >{busy ? 'Saving…' : 'Save'}</Button>
-                    </View>
-                  </View>
-                ) : (
-                  l.note ? <Text style={[styles.body, { marginTop: 6 }]}>{l.note}</Text> : null
-                )}
-              </Card>
-            ))}
           </View>
-        )}
-      </View>
+          <Text style={{ fontSize: 12, color: colors.subtext, fontFamily: fonts.body }}>
+            {elevateTracking.tasksCompleted} sub-tasks completed · {elevateTracking.tasksMissed} missed
+            {elevateTracking.tasksPending > 0 ? ` · ${elevateTracking.tasksPending} upcoming` : ''}
+          </Text>
+          <ElevateSubtaskHistory history={elevateTracking.taskHistory} defaultOpen />
+        </Card>
+      )}
+
+      {goal.source === 'elevate' ? (
+        <Card style={{ marginTop: 24 }}>
+          <Text style={{ color: colors.subtext, fontSize: 14, fontFamily: fonts.body, lineHeight: 22 }}>
+            Daily work is tracked via mini-tasks on the Dashboard — check off each sub-task as you complete it.
+          </Text>
+        </Card>
+      ) : (
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Progress logs</Text>
+            <Pressable onPress={() => setShowLogForm((v) => !v)} style={styles.addBtn}>
+              <Plus size={14} strokeWidth={2} color={colors.primary} />
+            </Pressable>
+          </View>
+
+          {showLogForm && (
+            <Card style={{ gap: 10 }}>
+              <Label>Today's progress</Label>
+              <Textarea
+                value={logNote} onChangeText={(v) => { setLogNote(v); if (logErr) setLogErr(''); }}
+                placeholder="What did you do today?"
+                style={{ minHeight: 80 }}
+              />
+              {logErr ? <Text style={{ color: colors.danger, fontSize: 13, fontFamily: fonts.body }}>{logErr}</Text> : null}
+              <Button onPress={logProgress} disabled={busy || !logNote.trim()}>
+                {busy ? 'Logging…' : 'Log progress'}
+              </Button>
+            </Card>
+          )}
+
+          {logs.length === 0 ? (
+            <Card style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.subtext, fontFamily: fonts.body }}>
+                No progress logged yet. Start with one small action today.
+              </Text>
+            </Card>
+          ) : (
+            <View style={{ gap: 8, marginTop: 10 }}>
+              {logs.map((l) => (
+                <Card key={l.id} style={{ padding: 14 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={styles.metaText}>{formatDateTime(l.logged_at)}</Text>
+                    {editLogId !== l.id && (
+                      <Pressable
+                        onPress={() => { setEditLogId(l.id); setEditLogNote(l.note || ''); setEditLogErr(''); }}
+                        hitSlop={8}
+                        style={styles.logEditBtn}
+                      >
+                        <Edit3 size={14} strokeWidth={1.5} color={colors.subtext} />
+                      </Pressable>
+                    )}
+                  </View>
+                  {editLogId === l.id ? (
+                    <View style={{ gap: 8, marginTop: 8 }}>
+                      <Textarea
+                        value={editLogNote}
+                        onChangeText={(v) => { setEditLogNote(v); if (editLogErr) setEditLogErr(''); }}
+                        style={{ minHeight: 70 }}
+                      />
+                      {editLogErr ? (
+                        <Text style={{ color: colors.danger, fontSize: 13, fontFamily: fonts.body }}>{editLogErr}</Text>
+                      ) : null}
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <Button
+                          variant="secondary"
+                          onPress={() => { setEditLogId(null); setEditLogNote(''); setEditLogErr(''); }}
+                          style={{ flex: 1 }}
+                        >Cancel</Button>
+                        <Button
+                          onPress={() => saveLogEdit(l.id)}
+                          disabled={busy || !editLogNote.trim()}
+                          style={{ flex: 1 }}
+                        >{busy ? 'Saving…' : 'Save'}</Button>
+                      </View>
+                    </View>
+                  ) : (
+                    l.note ? <Text style={[styles.body, { marginTop: 6 }]}>{l.note}</Text> : null
+                  )}
+                </Card>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
 
       <Button variant="danger" onPress={remove} disabled={busy} style={{ marginTop: 32 }}>
         <Trash2 size={16} strokeWidth={1.5} color={colors.danger} />

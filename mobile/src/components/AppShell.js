@@ -221,7 +221,7 @@ export default function AppShell({ children }) {
               <Bell size={24} strokeWidth={1.5} color={colors.secondary} />
             </View>
             <Text style={[styles.modalBody, { textAlign: 'center', marginTop: 16 }]}>
-              You're all caught up. Every goal has progress logged today.
+              You're all caught up. Manual goals have today's progress logged; Elevate plans use Dashboard mini-tasks.
             </Text>
           </View>
         ) : (

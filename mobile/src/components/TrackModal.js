@@ -5,6 +5,8 @@ import {
   X, TrendingUp, Users, Briefcase, Coins, HeartPulse, Sparkles, Target,
 } from 'lucide-react-native';
 import api from '../lib/api';
+import ElevateSubtaskHistory from './ElevateSubtaskHistory';
+import { probColorForScore } from '../lib/utils';
 import { colors, radius, fonts, withAlpha } from '../lib/theme';
 
 const PILLAR_ICONS = {
@@ -15,10 +17,9 @@ const PILLAR_ICONS = {
   inner_wellness: Sparkles,
 };
 
-function probColor(p) {
-  if (p >= 70) return { bar: colors.emerald, text: colors.emerald };
-  if (p >= 40) return { bar: colors.amber, text: colors.amber };
-  return { bar: colors.danger, text: colors.danger };
+function probBarColor(p) {
+  const { text } = probColorForScore(p);
+  return { bar: text, text };
 }
 
 function Sparkline({ timeline }) {
@@ -69,7 +70,9 @@ function Sparkline({ timeline }) {
 
 function GoalRow({ goal }) {
   const Icon = PILLAR_ICONS[goal.pillar] || Target;
-  const c = probColor(goal.probability);
+  const c = probBarColor(goal.probability);
+  const elevate = goal.isElevate;
+
   return (
     <View style={styles.row}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -84,14 +87,33 @@ function GoalRow({ goal }) {
       <View style={styles.bar}>
         <View style={[styles.barFill, { backgroundColor: c.bar, width: `${goal.probability}%` }]} />
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-        <Text style={styles.stat}>{goal.daysLogged} logged</Text>
-        <Text style={styles.stat}>·</Text>
-        <Text style={styles.stat}>{Math.max(0, goal.daysElapsed - goal.daysLogged)} missed</Text>
-        <Text style={styles.stat}>·</Text>
-        <Text style={styles.stat}>{goal.totalDays} days planned</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+        {elevate ? (
+          <>
+            <Text style={styles.stat}>{goal.tasksCompleted} sub-tasks done</Text>
+            <Text style={styles.stat}>·</Text>
+            <Text style={styles.stat}>{goal.tasksMissed} missed</Text>
+            {goal.tasksPending > 0 && (
+              <>
+                <Text style={styles.stat}>·</Text>
+                <Text style={styles.stat}>{goal.tasksPending} upcoming</Text>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.stat}>{goal.daysLogged} days logged</Text>
+            <Text style={styles.stat}>·</Text>
+            <Text style={styles.stat}>{Math.max(0, goal.daysElapsed - goal.daysLogged)} missed</Text>
+            <Text style={styles.stat}>·</Text>
+            <Text style={styles.stat}>{goal.totalDays} days planned</Text>
+          </>
+        )}
       </View>
       <Sparkline timeline={goal.timeline} />
+      {elevate && goal.taskHistory?.length > 0 && (
+        <ElevateSubtaskHistory history={goal.taskHistory} />
+      )}
     </View>
   );
 }
@@ -126,8 +148,9 @@ export default function TrackModal({ onClose, goalId = null }) {
           </View>
 
           <Text style={styles.formula}>
-            Each planned day = +{data?.[0] ? `${data[0].dayPoint.toFixed(1)}%` : '1/n×100%'} probability.
-            Every missed day reduces it. Log daily to keep it climbing.
+            {data?.some((g) => g.isElevate)
+              ? 'Elevate plans score each sub-task: completed past tasks lift probability; missed tasks apply consecutive and scattered penalties (floor 5%).'
+              : `Each planned day = +${data?.[0] ? `${data[0].dayPoint.toFixed(1)}%` : '1/n×100%'} base weight. Progress logs count as completed days.`}
           </Text>
 
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
@@ -139,7 +162,9 @@ export default function TrackModal({ onClose, goalId = null }) {
 
           <View style={styles.footer}>
             <Text style={{ fontSize: 10, color: colors.subtext, textAlign: 'center', fontFamily: fonts.body }}>
-              Open any goal → Log Progress to record your daily work
+              {data?.some((g) => g.isElevate)
+                ? 'Complete today\'s sub-tasks on the Dashboard.'
+                : 'Open any goal → Log Progress to record your daily work'}
             </Text>
           </View>
         </View>

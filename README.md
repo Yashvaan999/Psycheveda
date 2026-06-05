@@ -1,2 +1,78 @@
 # Psycheveda
-Your mind power buddy
+
+Your mind power buddy — behavioral psychology (CBT, NLP) meets Vedic wellness.
+
+## What runs today
+
+The **primary app** is the Expo project in [`mobile/`](mobile/): React Native + Expo Router, backed by **Supabase** (Auth + Postgres).
+
+A **legacy MVP** remains in [`frontend/`](frontend/) + [`backend/`](backend/) (FastAPI + MongoDB). See [`architecture.md`](architecture.md).
+
+## Quick start (mobile)
+
+### 1. Database
+
+Create a [Supabase](https://supabase.com) project and run migrations **in order** in the SQL editor:
+
+`database/supabase_migration.sql` → `v2` → `v3` → `v4` → `v5`
+
+### 2. Environment
+
+Create `mobile/.env`:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+From Supabase Dashboard → **Project Settings** → **API**.
+
+### 3. Install and run
+
+```bash
+cd mobile
+npm install --legacy-peer-deps
+npm run web
+```
+
+Open **http://localhost:5001**
+
+| Note | Detail |
+|------|--------|
+| Port | **5001** — macOS often reserves **5000** for AirPlay |
+| Script | `npm run web` = `expo start --web --port 5001` |
+| Interactive | `npm start` opens Expo dev tools (scan QR / pick web) |
+
+### Restart dev server
+
+```bash
+# From mobile/
+npm run web
+```
+
+If the port is stuck:
+
+```bash
+lsof -ti:5001 | xargs kill -9
+npm run web
+```
+
+## Documentation
+
+| File | Contents |
+|------|----------|
+| [`architecture.md`](architecture.md) | File map, manual vs Elevate tracking, completion % rules, APIs |
+| [`memory/PRD.md`](memory/PRD.md) | Product requirements and shipped features |
+| [`memory/test_credentials.md`](memory/test_credentials.md) | Test accounts and env vars |
+| [`design_guidelines.json`](design_guidelines.json) | UI design system |
+| [`.agents/memory/`](.agents/memory/) | Agent runbooks (migrations, Elevate, npm layout) |
+
+## Key features
+
+- Five **pillars**, goals, and daily **mini-tasks**
+- **Manual goals:** progress logs + completion % from logged days
+- **Elevate plans:** generated locally from Gut-Brain assessment; tracked via mini-task checkboxes and sub-task history (no progress logs)
+- **Bless Points** (+5 task, +15 gratitude) and **Veda Streak**
+- NLP **journal** (2/day) and **gratitude** ritual
+- **Completion probability** per goal (Track modal)
+- **HPA Axis** time-adaptive screen

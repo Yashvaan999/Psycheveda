@@ -29,7 +29,9 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     try {
       const [g, t, s] = await Promise.all([api.listGoals(), api.tasksToday(), api.stats()]);
-      setGoals(g); setTasks(t); setStats(s);
+      setGoals(g);
+      setTasks(t);
+      setStats(s);
     } catch (e) { console.warn(e); }
     finally { setLoading(false); }
   }, []);

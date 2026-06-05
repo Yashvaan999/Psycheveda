@@ -5,13 +5,33 @@ description: How schema changes are applied for this app's external Supabase dat
 
 # Supabase schema changes
 
-This Expo app talks to an **external Supabase** project (env: EXPO_PUBLIC_SUPABASE_URL / ANON_KEY,
-mirrored from VITE_SUPABASE_* secrets). It is NOT the Replit built-in Postgres.
+The Expo app in `mobile/` uses an **external Supabase** project (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `mobile/.env`). It is **not** the Replit built-in Postgres.
 
-**Rule:** Schema/DDL changes go into `database/supabase_migration_v<N>.sql` (versioned, append-only).
-The **user** pastes/runs them in the Supabase SQL editor — the app's anon key cannot run DDL.
+## Migration files (run in order)
 
-**How to apply:** After writing a new migration file, tell the user to run it in Supabase.
-App code that touches a new table should tolerate the table not existing yet (try/catch, warn)
-so the UI doesn't crash before the user runs the migration. This mirrors existing patterns
-(e.g. bless_transactions / goal_progress_logs writes are wrapped in try/catch).
+| File | Adds |
+|------|------|
+| `database/supabase_migration.sql` | Core: profiles, goals, mini_tasks, journal_entries, bless_transactions, RLS, journal 2/day trigger |
+| `database/supabase_migration_v2.sql` | `gratitude_entries` |
+| `database/supabase_migration_v3.sql` | `goal_progress_logs`, `goals.notes` |
+| `database/supabase_migration_v4.sql` | `gut_brain_assessments` |
+| `database/supabase_migration_v5.sql` | Profile matrix (age, wake_time, …), **`goals.source`** (`manual` \| `elevate`), Elevate **`mini_tasks`** metadata |
+
+**Rule:** New DDL → append `database/supabase_migration_v<N>.sql`. User runs in Supabase SQL editor; anon key cannot run DDL.
+
+## Progress-related tables
+
+| Table | Used by |
+|-------|---------|
+| `mini_tasks` | All goals; **Elevate** completion % and history |
+| `goal_progress_logs` | **Manual goals only** (Elevate API returns empty / rejects writes) |
+| `goals.source` | Distinguishes tracking mode |
+| `bless_transactions` / `profiles` | Bless balance + streak |
+
+## App resilience
+
+Optional tables wrapped in **try/catch** in `api.js` so the UI survives missing migrations.
+
+## After migrating
+
+Update `architecture.md` and `memory/PRD.md` if behavior changes. Elevate goals need **v5** `source` column or they fall back to manual progress-log behavior.

@@ -1,3 +1,5 @@
+import { colors } from './theme';
+
 export function fmtDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, {
@@ -27,4 +29,12 @@ export function formatDateTime(iso) {
 
 export function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Completion-probability badge colors (UI only; score comes from goalTrackingData). */
+export function probColorForScore(p) {
+  if (p >= 75) return { text: colors.emerald };
+  if (p >= 50) return { text: colors.amber };
+  if (p >= 30) return { text: colors.orange };
+  return { text: colors.danger };
 }

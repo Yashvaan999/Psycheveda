@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { buildElevatePlan } from './elevatePlan';
+import { analyzeElevateSubTasks, analyzeManualDays } from './completionProbability';
 
 const PILLAR_LABELS = {
   family_relationship: 'Family & Relationship',
@@ -169,11 +170,12 @@ export const api = {
       const totalDays = g.estimate_unit === 'days'
         ? g.estimate_value
         : Math.ceil(g.estimate_value / 24);
+      const isElevate = g.source === 'elevate';
       return {
         ...g,
         pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
         mini_tasks: g.mini_tasks || [],
-        progress_log_count: logCountByGoal[g.id] || 0,
+        progress_log_count: isElevate ? 0 : (logCountByGoal[g.id] || 0),
         total_days: totalDays,
       };
     });
@@ -183,9 +185,13 @@ export const api = {
     const { data: { user } } = await supabase.auth.getUser();
     const { data: goals, error } = await supabase
       .from('goals')
-      .select('id, title, pillar, estimate_unit, estimate_value, created_at, deadline_at')
+      .select('id, title, pillar, source, estimate_unit, estimate_value, created_at, deadline_at')
       .order('created_at', { ascending: false });
     if (error) throw error;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const goalList = goals || [];
+    const goalIds = goalList.map((g) => g.id);
 
     let logsByGoal = {};
     try {
@@ -199,31 +205,57 @@ export const api = {
       }
     } catch { /* table may not exist */ }
 
-    return (goals || []).map((g) => {
+    let tasksByGoal = {};
+    if (goalIds.length > 0) {
+      try {
+        const { data: miniTasks } = await supabase
+          .from('mini_tasks')
+          .select('id, goal_id, title, scheduled_for, completed, time_window, scheduled_time, source')
+          .in('goal_id', goalIds)
+          .order('scheduled_for', { ascending: true });
+        for (const t of (miniTasks || [])) {
+          if (!tasksByGoal[t.goal_id]) tasksByGoal[t.goal_id] = [];
+          tasksByGoal[t.goal_id].push(t);
+        }
+      } catch { /* best-effort */ }
+    }
+
+    return goalList.map((g) => {
       const totalDays = g.estimate_unit === 'days'
         ? g.estimate_value
         : Math.ceil(g.estimate_value / 24);
-      const created = new Date(g.created_at); created.setHours(0, 0, 0, 0);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const daysElapsed = Math.max(0, Math.floor((today - created) / 86400000));
-      const logDates = logsByGoal[g.id] || new Set();
-      const daysLogged = logDates.size;
-      const missedDays = Math.max(0, daysElapsed - daysLogged);
-      const dayPoint = 100 / totalDays;
-      const probability = Math.max(0, Math.min(100, Math.round(100 - missedDays * dayPoint)));
+      const isElevate = g.source === 'elevate';
+      const miniTasks = tasksByGoal[g.id] || [];
 
-      const displayDays = Math.min(totalDays, 60);
-      const timeline = [];
-      let runningProb = 100;
-      for (let i = 0; i < displayDays; i++) {
-        const d = new Date(created); d.setDate(d.getDate() + i);
-        const dateStr = d.toISOString().slice(0, 10);
-        const isPast = d <= today;
-        const logged = isPast && logDates.has(dateStr);
-        if (isPast && !logged) runningProb = Math.max(0, runningProb - dayPoint);
-        timeline.push({ dateStr, logged, isPast, prob: runningProb });
-      }
-      return { id: g.id, title: g.title, pillar: g.pillar, totalDays, daysElapsed, daysLogged, probability, timeline, dayPoint };
+      const tracking = isElevate
+        ? analyzeElevateSubTasks(miniTasks, today)
+        : analyzeManualDays({
+          totalDays,
+          createdAt: g.created_at,
+          logDates: logsByGoal[g.id] || new Set(),
+        }, today);
+
+      const dayPoint = totalDays > 0 ? 100 / totalDays : 0;
+
+      return {
+        id: g.id,
+        title: g.title,
+        pillar: g.pillar,
+        source: g.source || 'manual',
+        isElevate,
+        totalDays: tracking.totalDays || totalDays,
+        daysElapsed: tracking.daysElapsed,
+        daysLogged: tracking.daysLogged,
+        probability: tracking.probability,
+        timeline: tracking.timeline,
+        taskHistory: tracking.taskHistory,
+        tasksCompleted: tracking.tasksCompleted,
+        tasksMissed: tracking.tasksMissed,
+        tasksPending: tracking.tasksPending,
+        tasksTotal: tracking.tasksTotal,
+        trackingMode: tracking.trackingMode,
+        dayPoint,
+      };
     });
   },
 
@@ -267,6 +299,15 @@ export const api = {
   logProgress: async (goalId, note) => {
     const trimmed = (note || '').trim();
     if (!trimmed) throw new Error('Please describe today\'s progress (1-2000 characters).');
+    const { data: goal, error: goalErr } = await supabase
+      .from('goals')
+      .select('source')
+      .eq('id', goalId)
+      .single();
+    if (goalErr) throw goalErr;
+    if (goal?.source === 'elevate') {
+      throw new Error('Elevate plans use daily mini-tasks on the Dashboard — no progress log needed.');
+    }
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('goal_progress_logs')
@@ -315,7 +356,7 @@ export const api = {
     if (!user) return [];
     const { data: goals, error } = await supabase
       .from('goals')
-      .select('id, title, pillar, deadline_at, created_at')
+      .select('id, title, pillar, deadline_at, created_at, source')
       .order('created_at', { ascending: false });
     if (error) throw error;
     const today = new Date().toISOString().slice(0, 10);
@@ -330,6 +371,7 @@ export const api = {
     } catch { /* table may not exist */ }
     const now = new Date();
     return (goals || [])
+      .filter((g) => g.source !== 'elevate')
       .filter((g) => !loggedToday.has(g.id) && (!g.deadline_at || new Date(g.deadline_at) >= now))
       .map((g) => ({
         id: g.id,
@@ -340,6 +382,14 @@ export const api = {
   },
 
   listProgressLogs: async (goalId) => {
+    const { data: goal, error: goalErr } = await supabase
+      .from('goals')
+      .select('source')
+      .eq('id', goalId)
+      .single();
+    if (goalErr) throw goalErr;
+    if (goal?.source === 'elevate') return [];
+
     const { data, error } = await supabase
       .from('goal_progress_logs').select('*')
       .eq('goal_id', goalId)

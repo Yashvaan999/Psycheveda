@@ -1,114 +1,180 @@
 # Psycheveda — Architecture Map
 
-> Condensed root-level summary of the Psycheveda MVP codebase. This file is the
-> *single source of truth* for layout to minimize LLM context-window overhead.
+> Condensed root-level summary for LLM context. Pair with `design_guidelines.json`
+> for UI tokens. **Primary shipped client:** `mobile/` (Expo + Supabase).
+
+_Last updated: 2026-06-04_
 
 ## High-level
 
-Psycheveda bridges modern behavioral psychology (CBT, NLP) with Vedic wellness.
-The MVP is delivered as a **mobile-first responsive web app** using:
+Psycheveda bridges behavioral psychology (CBT, NLP) with Vedic wellness.
 
-- **Frontend**: React 18 + React Router + Tailwind CSS + lucide-react
-- **Backend**: FastAPI (Python) + Motor (async MongoDB)
-- **Auth**: JWT email/password (bcrypt)
-- **Theme**: Uniform `Sacred Earth & Slate` dark palette across all screens,
-  with one exception — `/hpa-axis` adapts to the device's local time.
-- **Database parity**: Mongo is the live store. The schema mirrors the
-  Supabase / PostgreSQL migration in `database/supabase_migration.sql`,
-  so the layer is portable to Supabase if the user later swaps BaaS.
+| Layer | Stack | Role |
+|--------|--------|------|
+| **Primary app** | Expo 56 + Expo Router + React Native Web | Production UI (Replit + local dev) |
+| **Data** | **Supabase** (PostgreSQL + Auth) | Live store for `mobile/` |
+| **Legacy MVP** | CRA `frontend/` + FastAPI `backend/` + MongoDB | Original Emergent MVP; schema mirrored in SQL migrations |
+
+- **Auth (mobile):** Supabase email/password (`mobile/src/lib/supabase.js`, `auth.js`)
+- **Auth (legacy):** JWT email/password (`backend/server.py`)
+- **Theme:** Light **Saffron, Sage & Linen** (`mobile/src/lib/theme.js`). **HPA Axis** is the only runtime-adaptive palette (device local time).
 
 ## Directory map
 
 ```
-/app
-├── architecture.md                  # ← this file
-├── design_guidelines.json           # Design system tokens & screen blueprints
-├── backend/
-│   ├── server.py                    # FastAPI app — all /api/* routes
-│   ├── requirements.txt
-│   └── .env                         # MONGO_URL, DB_NAME, JWT_SECRET, …
+├── architecture.md              # ← this file
+├── README.md                    # Repo overview + local run
+├── design_guidelines.json       # Design system tokens & screen blueprints
 ├── database/
-│   └── supabase_migration.sql       # PostgreSQL migration (paste into Supabase)
-├── frontend/
-│   ├── package.json
-│   ├── tailwind.config.js           # Psycheveda + HPA palette tokens
-│   ├── postcss.config.js
-│   ├── public/index.html            # Loads Cormorant Garamond + Outfit fonts
+│   ├── supabase_migration.sql   # v1 core schema
+│   ├── supabase_migration_v2.sql … v5.sql
+├── mobile/                      # ★ Primary app (Expo + Supabase)
+│   ├── package.json             # npm run web → port 5001
+│   ├── app.json
+│   ├── .env                     # EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
+│   ├── app/                     # Expo Router screens
+│   │   ├── dashboard.js         # Mini-tasks, goals, Track modal
+│   │   ├── goals/[id].js        # Manual: progress logs; Elevate: % + sub-task history
+│   │   ├── journal.js, journal-history.js
+│   │   ├── gratitude.js, gratitude-history.js
+│   │   ├── gut-brain-plan.js    # Success Identity + Elevate Yourself
+│   │   ├── hpa-axis.js
+│   │   └── auth.js, onboarding.js, …
 │   └── src/
-│       ├── index.js                 # React bootstrap
-│       ├── index.css                # Tailwind + global Sacred-Earth styles
-│       ├── App.js                   # Router (AuthProvider + Protected routes)
-│       ├── App.css                  # minimal app-level overrides
-│       ├── theme/
-│       │   └── tokens.js            # Color tokens, pillar meta, getHpaPhase()
 │       ├── lib/
-│       │   ├── api.js               # axios client w/ JWT interceptor
-│       │   ├── auth.jsx             # AuthProvider + useAuth hook
-│       │   └── utils.js             # cn(), date formatters
-│       ├── components/
-│       │   ├── AppShell.jsx         # Header + bottom nav for protected views
-│       │   └── ui/primitives.jsx    # Button, Card, Input, Textarea, Label, Badge, Divider
-│       └── screens/
-│           ├── AuthScreen.jsx       # Sign in / Register
-│           ├── OnboardingScreen.jsx # 2-step pillar + goal setup w/ estimate
-│           ├── DashboardScreen.jsx  # Bless/Streak + Daily Mini-Tasks + Goals
-│           ├── JournalScreen.jsx    # Sequential 5-step NLP flow (+ bless on PM)
-│           ├── JournalHistoryScreen.jsx # Date-wise timeline
-│           └── HpaAxisScreen.jsx    # Premium time-adaptive palette screen
-└── memory/                          # PRD, test_credentials, runbooks
+│       │   ├── api.js
+│       │   ├── completionProbability.js
+│       │   ├── elevatePlan.js
+│       │   ├── successIdentity.js
+│       │   ├── supabase.js, auth.js, theme.js, utils.js
+│       └── components/
+│           ├── TrackModal.js
+│           ├── ElevateSubtaskHistory.js
+│           └── AppShell.js, ui.js, …
+├── frontend/                    # Legacy CRA (FastAPI client)
+├── backend/
+│   ├── server.py
+│   └── tests/backend_test.py
+└── memory/                      # PRD, test_credentials
 ```
 
-## API surface (FastAPI)
+## Progress tracking (mobile)
 
-All routes are prefixed `/api`.
+### Two goal modes
 
-| Method | Path                                | Purpose                                              |
-|--------|-------------------------------------|------------------------------------------------------|
-| GET    | /api/health                         | Liveness probe                                       |
-| POST   | /api/auth/register                  | Email/password registration → JWT                    |
-| POST   | /api/auth/login                     | Email/password sign-in → JWT                         |
-| GET    | /api/auth/me                        | Current user profile                                 |
-| GET    | /api/pillars                        | List the 5 pillars                                   |
-| GET    | /api/pillars/{pillar}/suggestions   | 5 simulated AI goal suggestions for that pillar      |
-| POST   | /api/onboarding/pillars             | Persist user's selected pillars + complete onboarding |
-| POST   | /api/goals                          | Create goal (auto-generates daily mini-tasks)        |
-| GET    | /api/goals                          | List user's goals + tasks                            |
-| GET    | /api/tasks/today                    | Today's mini-tasks across goals                      |
-| PATCH  | /api/tasks/{task_id}                | Toggle completion → updates bless ledger + streak    |
-| GET    | /api/journal/frames                 | NLP frame catalog                                    |
-| POST   | /api/journal                        | Create journal entry (hard cap 2/day)                |
-| GET    | /api/journal                        | Date-wise grouped entries                            |
-| GET    | /api/stats                          | Bless balance, streak, today's progress              |
-| GET    | /api/hpa-axis/phase                 | Server hint for the circadian phase                  |
+| | **Manual goals** (`goals.source = 'manual'`) | **Elevate goals** (`goals.source = 'elevate'`) |
+|---|---------------------------------------------|------------------------------------------------|
+| Daily work | Optional **progress logs** (`goal_progress_logs`) | **Mini-task checkboxes** on Dashboard only |
+| Completion % input | Progress-log days | `mini_tasks` completed / missed |
+| Goal detail UI | Progress log form + history | Completion % + `ElevateSubtaskHistory` |
+| Reminders | Yes — missing today's log | No — excluded from `goalReminders` |
+| API | `logProgress`, `listProgressLogs` | Blocked / returns `[]`; `toggleTask` on Dashboard |
 
-## Behavioral rules — Bless ledger
+### Data model (Supabase)
 
-- `+5` Bless Points per mini-task completion (revoked on un-toggle)
-- `+10` Bless Points per journal entry sealed
-- `+3` Bless Points for an evening Bless-Point gratitude
-- **Veda Streak** = consecutive days with ≥ 1 bless-earning activity.
-  Resets to `1` if a day is skipped; preserved if same-day re-activity.
+| Table / field | Tracks |
+|---------------|--------|
+| `mini_tasks` | Daily sub-tasks (`scheduled_for`, `completed`); Elevate: `source`, `time_window`, `scheduled_time` |
+| `goal_progress_logs` | **Manual goals only** — free-text daily notes |
+| `goals.source` | `manual` \| `elevate` (v5 migration) |
+| `bless_transactions` + `profiles.bless_points_balance` | Bless ledger |
+| `profiles.veda_streak`, `last_activity_date` | Activity streak |
+| `journal_entries` | NLP journal (max 2/day) |
+| `gratitude_entries` | Three blessings (+15 Bless) |
+| `gut_brain_assessments` | Success Identity questionnaire |
 
-## Theme architecture
+Run migrations **v1 → v5** in order in the Supabase SQL editor.
 
-- Global tokens live in `tailwind.config.js` (`psy.*` namespace) and
-  `src/theme/tokens.js`.
-- The **HPA Axis Fix** screen is the only place that swaps palettes at runtime
-  based on `new Date().getHours()`:
-    - `05:00 – 13:59` → `cortisol_am`
-    - `14:00 – 16:59` → `twilight`
-    - `17:00 – 04:59` → `melatonin_pm`
-- Palette swap is purely client-side; `/api/hpa-axis/phase` returns only a hint.
+### Completion probability (`completionProbability.js`)
 
-## Reflection notes (per problem statement)
+Starting score **100%**. Penalties on miss events in chronological order:
 
-- **Journal validation** is enforced at TWO layers: API count check + the
-  Supabase migration trigger `enforce_journal_daily_limit()`. Bulletproof against
-  client-side bypass.
-- **Days vs. Hours** is converted at goal-creation time:
-  `deadline_at = now() + interval (estimate_value * unit)`; mini-task
-  generation uses `ceil(hours/24)` for sub-day estimates so the dashboard
-  always shows at least one task.
-- **Context preservation**: this single `architecture.md` (plus
-  `design_guidelines.json`) is enough to reconstruct the layout map without
-  re-reading every file.
+| Scenario | Penalty |
+|----------|---------|
+| 1 missed (edge streak) | −5% |
+| 2 consecutive misses | −25% (one application per run) |
+| 3 consecutive | −50% |
+| k ≥ 4 consecutive | −min(5^k / 10, 80)% |
+| Scattered singleton (hits before and after) | −2% × scattered index |
+
+- **Floor:** 5% minimum score  
+- **Cap:** total penalty ≤ 95%  
+- **Elevate:** each past incomplete `mini_task` = miss; today incomplete = pending  
+- **Manual:** each past day without progress log = miss  
+
+Color bands in UI (`probColorForScore` in `utils.js`): ≥75% green, 50–74% amber, 30–49% orange, &lt;30% red.
+
+### Key API methods (`mobile/src/lib/api.js`)
+
+| Method | Behavior |
+|--------|----------|
+| `tasksToday` | Today's `mini_tasks` |
+| `toggleTask` | Mark mini-task complete (+5 Bless) |
+| `logProgress` | Manual goals only; rejects `elevate` |
+| `listProgressLogs` | Returns `[]` for Elevate goals |
+| `goalTrackingData` | Per-goal %, timeline, `taskHistory` (Elevate) |
+| `goalReminders` | Manual goals missing today's progress log |
+| `createElevateGoal` | Inserts goal + all plan `mini_tasks` |
+
+### UI map
+
+| Screen / component | Shows |
+|------------------|--------|
+| `dashboard.js` | Today's mini-tasks (no per-task %); Track button |
+| `goals/[id].js` | Manual: progress logs; Elevate: % + sub-task history |
+| `TrackModal.js` | Goal-level completion %, sparkline, Elevate history |
+| `ElevateSubtaskHistory.js` | Date-wise completed / missed / pending sub-tasks |
+| `AppShell.js` | Bless, streak, manual-goal reminders |
+
+## API surface (legacy FastAPI)
+
+Used by `frontend/` only. Routes prefixed `/api`.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | /api/health | Liveness |
+| POST | /api/auth/register, /api/auth/login | JWT auth |
+| GET | /api/auth/me | Profile + bless + streak |
+| GET/POST | /api/goals, /api/onboarding/pillars | Goals + pillars |
+| GET | /api/tasks/today | Today's mini-tasks |
+| PATCH | /api/tasks/{id} | Toggle task |
+| GET/POST | /api/journal | NLP journal |
+| GET | /api/stats | Dashboard stats |
+| GET | /api/hpa-axis/phase | Circadian hint |
+
+## Bless ledger (mobile)
+
+- **+5** per mini-task completed (`toggleTask`)
+- **+15** per daily gratitude (`createGratitude`)
+- Journal does **not** award Bless in the Supabase app
+- **Veda Streak:** consecutive bless-earning days (tasks, gratitude; progress log may bump streak on manual goals)
+
+## HPA Axis phases
+
+`getHpaPhase()` in `theme.js`:
+
+- `05:00 – 13:59` → `cortisol_am`
+- `14:00 – 16:59` → `twilight`
+- `17:00 – 04:59` → `melatonin_pm`
+
+## Local run (mobile)
+
+```bash
+cd mobile
+cp .env.example .env   # if you maintain one; else create .env manually
+npm install --legacy-peer-deps
+npm run web            # → http://localhost:5001
+```
+
+- **`npm run web`** runs `expo start --web --port 5001` (do not use `--host 0.0.0.0` — unsupported in current Expo CLI).
+- **Port 5000** is often occupied by macOS AirPlay Receiver; use 5001 locally.
+- Replit workflow may still target port 5000 — adjust workflow ports if preview fails locally.
+
+Legacy: Mongo + `uvicorn` on :8001 + CRA `frontend` on :3000.
+
+## Reflection notes
+
+- **Journal quota:** API + Postgres trigger `enforce_journal_daily_limit()`.
+- **Hour goals:** `ceil(hours/24)` mini-task span; `deadline_at` from estimate at create.
+- **Completion %** only on goals (Track modal / Elevate goal page), not beside dashboard mini-tasks.
+- **Elevate goals** must have `goals.source = 'elevate'` in Supabase (v5); otherwise they behave as manual goals.

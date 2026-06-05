@@ -17,6 +17,7 @@ export const colors = {
   dangerSoft: '#FEF2F2',
   dangerBorder: '#FECACA',
   amber: '#D97706',
+  orange: '#EA580C',
   emerald: '#059669',
   gold: '#E8B547',
   heart: '#E11D48',

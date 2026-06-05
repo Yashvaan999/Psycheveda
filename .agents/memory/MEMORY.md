@@ -1,3 +1,18 @@
-- [Expo Router server SSR + Supabase](expo-ssr-supabase.md) — `output:"server"` SSRs every page in Node; Supabase client crashes on WebSocket + AsyncStorage `window`. Shim both server-side.
-- [mobile/ is a separate npm project](mobile-npm-project.md) — package-management tool installs at workspace root, not mobile/; install there manually with `--legacy-peer-deps`.
-- [Elevate plan generation](elevate-plan-generation.md) — plan generation is local rule-based (no AI); output shape must stay in lockstep with its goal-creation consumer.
+# Agent memory index
+
+- [Expo Router server SSR + Supabase](expo-ssr-supabase.md) — Supabase client shims if `web.output` is `"server"`.
+- [mobile/ is a separate npm project](mobile-npm-project.md) — install in `mobile/`; local web on **port 5001**.
+- [Elevate plan generation](elevate-plan-generation.md) — local plans; **no progress logs**; mini-task tracking + completion %.
+- [Supabase migrations](supabase-migrations.md) — v1–v5; `goals.source` required for Elevate behavior.
+- [Subscription paywall (deferred)](subscription-paywall.md) — paused; goal tracking stays free when built.
+
+**Root docs (keep in sync with code):**
+
+| File | Purpose |
+|------|---------|
+| `architecture.md` | File map, manual vs Elevate tracking, completion % rules, local run |
+| `memory/PRD.md` | Product scope and shipped features |
+| `memory/test_credentials.md` | Env vars, ports, test flows |
+| `README.md` | Quick start |
+
+**Tracking rule of thumb:** Manual goals → progress logs. Elevate goals → Dashboard mini-tasks only.

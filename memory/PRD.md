@@ -1,106 +1,119 @@
 # Psycheveda — Product Requirements Document
 
-_Last updated: 2026-05-19_
+_Last updated: 2026-06-04_
 
-## Original problem statement (verbatim summary)
+## Vision
 
-Build an MVP for **Psycheveda** — a mobile app bridging modern behavioral
-psychology (CBT, NLP) with ancient Vedic wellness principles. Framed around
-grounding, mindfulness, and circadian rhythm. Uniform **"Sacred Earth & Slate"**
-dark theme everywhere, except an exclusive premium zone **"HPA Axis Fix"**
-where UI adapts to the user's localized biological clock.
+MVP bridging behavioral psychology (CBT, NLP) with Vedic wellness. Light **Saffron, Sage & Linen** UI; **HPA Axis** adapts palette to local time.
 
-## Architectural pivot (vs spec)
+## Architecture (current)
 
-- The spec asked for **Expo / React Native + Supabase**. To deliver a
-  live-previewable, runnable artifact in the Emergent environment, the MVP
-  was implemented as a **mobile-first React web app + FastAPI + MongoDB**.
-- The original Supabase / PostgreSQL schema is delivered as a **production-ready
-  migration script** at `/app/database/supabase_migration.sql` (paste into
-  Supabase SQL editor). The Mongo models mirror the relational schema 1:1.
+| Track | Stack | Status |
+|--------|--------|--------|
+| **Primary** | Expo (`mobile/`) + Supabase | Active — local (`:5001`) + Replit |
+| **Legacy** | CRA (`frontend/`) + FastAPI + MongoDB | Maintained; SQL migrations mirror schema |
 
 ## User personas
 
 | Persona | Needs |
-|---|---|
-| **Inner seeker** | Daily grounding + reflection cadence aligned with Vedic ideals |
-| **Behavioral optimizer** | Concrete CBT/NLP reframing tooling + measurable streaks |
-| **Burned-out professional** | Circadian-aware reset (HPA Axis Fix premium screen) |
+|---------|--------|
+| **Inner seeker** | Daily grounding and reflection |
+| **Behavioral optimizer** | CBT/NLP tools, streaks, goal completion % |
+| **Burned-out professional** | Circadian reset (HPA Axis) |
 
-## Core (static) requirements
+## Core requirements
 
-1. **Sacred Earth & Slate** uniform dark theme (#161B22 / #21262D / #E58A44 / #52796F / #F0F4F8 / #8B949E).
-2. **HPA Axis Fix** is the only exception — palette adapts to device-local time.
-3. **5 Pillars**: Family & Relationship, Career & Business, Finance & Money, Health, Inner Wellness.
-4. **5 simulated AI goal suggestions** per pillar + custom entry.
-5. **Goals** include `days|hours` estimate that resolves to a `deadline_at` timestamp.
-6. **Mini-Tasks** auto-generated daily from each goal (`ceil(hours/24)` for hour-estimates).
-7. **NLP Cognitive Reframing Journal** — exactly 5 sequential steps + bless gratitude on evening entries.
-8. **Max 2 journal entries per user per day** (API + Postgres trigger).
-9. **Rule-based Bless ledger**: +5 task, +10 journal, +3 gratitude. Veda Streak = consecutive activity days.
+1. Five **pillars**, goal suggestions, custom goals (`days` \| `hours`).
+2. **Mini-tasks** per goal; Elevate = one sub-task per habit × plan duration.
+3. **NLP journal** — max **2/day**.
+4. **Gratitude** — three blessings, **+15 Bless**, once per day.
+5. **Bless** — +5 per completed mini-task; **Veda Streak** on profile.
+6. **Gut-Brain** → Success Identity tiers; **Elevate Yourself** → local plan (`elevatePlan.js`).
+7. **Completion probability** per **goal** (not per dashboard mini-task).
+8. **HPA Axis** — dynamic palette by time of day.
 
-## Implementation status (✅ shipped 2026-05-19)
+## Goal tracking modes
 
-- ✅ FastAPI backend with JWT auth, all endpoints under `/api`
-- ✅ MongoDB collections: users, goals, mini_tasks, journal_entries, **gratitude_entries**, bless_transactions
-- ✅ **Visual overhaul (later same day)**: pivoted from dark "Sacred Earth & Slate" → light **"Saffron, Sage & Linen"** organic palette
-- ✅ **Gratitude ritual (later same day)** — dedicated `/gratitude` flow:
-   - 3-point daily entry (1 per user per day), awards **+15 Bless Points**
-   - Journal entries no longer award Bless Points (moved entirely to gratitude)
-   - Date-wise `/gratitude/history` timeline mirroring journal history
-   - New `Gratitude` tab in bottom nav (Dashboard | Journal | **Gratitude** | HPA Axis)
-   - Prominent saffron-accented "Bless Ritual" card on Dashboard with day-state ("Offer" vs "Offered today — +15 Bless earned / View")
-   - Stats endpoint exposes `gratitude_logged_today: bool`
-   - Tokens: `#FBF9F4` canvas, `#F3EFE6` cards, `#D97736` saffron, `#4E7065` sage, `#2D3631` text, `#7A847F` subtext, `#E8E2D5` ultra-subtle borders
-   - Fonts swapped: Cormorant Garamond → **Lora** (display) | Outfit → **Inter** (body)
-   - Border radii increased globally: inputs/cards `16px` (rounded-2xl), primary buttons `24px` (rounded-3xl)
-   - Padding bumped: inputs `px-5 py-4`, cards `p-7`; harsh borders eliminated, depth defined by soft natural shadows
-   - HPA Axis remains the **only** dynamic-tint exception (cortisol_am / twilight / melatonin_pm)
-- ✅ Sacred Earth & Slate design tokens (Tailwind + global CSS)
-- ✅ Cormorant Garamond display + Outfit body fonts (loaded via Google Fonts)
-- ✅ Auth screen with Sign In / Create Account tabs
-- ✅ 2-step onboarding: pillar selector + per-pillar goal setup with AI suggestions, custom entry, days/hours estimate
-- ✅ Dashboard with Bless Points, Veda Streak, Today's Mini-Tasks, Goal progress
-- ✅ Journal — sequential 5-step flow (6 with Bless gratitude on evenings); 2/day hard cap; date-wise history
-- ✅ HPA Axis Fix premium screen with cortisol_am / twilight / melatonin_pm palettes
-- ✅ PostgreSQL migration script (`database/supabase_migration.sql`) with RLS + trigger
-- ✅ `architecture.md` condensed file map at root
-- ✅ 26/26 backend pytest tests pass; frontend E2E confirmed via Playwright
+### Manual goals
 
-## Prioritized backlog
+- User may **log progress** (free text) on the goal detail screen.
+- Completion % uses **progress-log days** (`goalTrackingData` → `analyzeManualDays`).
+- **Reminders** in AppShell when today's log is missing.
+- `logProgress` can auto-complete same-day mini-tasks for that goal.
 
-### P1 — next session candidates
-- Streak-recovery & "Day-zero" gentle re-onboarding copy.
-- Native push reminders (web push or Expo wrap).
-- Real LLM-powered goal suggestions (gpt-5.2 / Claude Sonnet 4.5) gated behind Premium.
-- Profile screen + edit name/avatar.
+### Elevate goals
 
-### P2
-- Settings (theme override, quiet hours).
-- Social-only sign-in (Google OAuth) — currently email/password only.
-- Goal completion confetti + share card.
-- Habits analytics screen (Bless trendline, frame distribution heatmap).
+- **No progress logs** — UI, API (`logProgress`, `listProgressLogs`), and reminders all exclude Elevate.
+- User completes **Dashboard mini-tasks** (checkboxes).
+- Completion % and **date-wise sub-task history** from `mini_tasks` (`analyzeElevateSubTasks`).
+- Requires `goals.source = 'elevate'` (migration v5).
 
-### P3 / future
-- Coach-led courses module.
-- Wearable integration (HRV → adaptive HPA recommendations).
-- Multi-language (Sanskrit/Hindi/English UI).
+## Completion probability rules
 
-## Known limitations / explicit non-goals for MVP
+Implemented in `mobile/src/lib/completionProbability.js`:
 
-- AI goal suggestions are static per problem statement ("simulate an AI engine").
-- No social sign-in yet (problem statement listed it; not blocking).
-- Bless Points are not redeemable for anything (intentional MVP scope).
+- Consecutive miss runs: −5% / −25% / −50% / −min(5^k/10, 80)% for k≥4
+- Scattered isolated misses: −2% × index (when sandwiched by hits)
+- Floor **5%**, total penalty cap **95%**
+- UI colors: ≥75% green, 50–74% amber, 30–49% orange, &lt;30% red
 
-## Files of record
+## Shipped features
 
-- `/app/architecture.md` — full file map + API surface + rules
-- `/app/design_guidelines.json` — design system
-- `/app/database/supabase_migration.sql` — relational schema
-- `/app/memory/test_credentials.md` — test accounts
+### Platform
+- ✅ Expo Router + Supabase Auth
+- ✅ Legacy FastAPI + Mongo MVP
 
-## Next action items
+### Goals & tasks
+- ✅ Onboarding, dashboard mini-tasks, goal list
+- ✅ Manual goal detail: progress logs
+- ✅ Elevate goal detail: completion % + `ElevateSubtaskHistory`
+- ✅ Track modal (all goals)
 
-1. Confirm preferred path if you want native iOS/Android (we'd wrap with Expo or build a true RN version).
-2. Decide if AI suggestions should be upgraded to a real LLM call.
-3. Pick OAuth provider(s) if social sign-in is wanted.
+### Progress & analytics
+- ✅ `goalTrackingData`, penalty engine, sparkline
+- ✅ Elevate sub-task history (completed / missed / pending by date)
+
+### Wellness
+- ✅ Journal, gratitude, Gut-Brain, Elevate plan (local), HPA Axis
+
+### Gamification
+- ✅ Bless points modal, Veda streak, manual-goal reminders
+
+## Progress tracking — files of record
+
+| Concern | Files |
+|---------|--------|
+| API | `mobile/src/lib/api.js` |
+| Completion % | `mobile/src/lib/completionProbability.js` |
+| Elevate plans | `mobile/src/lib/elevatePlan.js` |
+| Assessment | `mobile/src/lib/successIdentity.js` |
+| UI | `TrackModal.js`, `ElevateSubtaskHistory.js`, `dashboard.js`, `goals/[id].js` |
+| Schema | `database/supabase_migration.sql` … `v5.sql` |
+
+## Local development
+
+```bash
+cd mobile && npm install --legacy-peer-deps && npm run web
+```
+
+→ http://localhost:5001 (avoid 5000 on macOS — AirPlay)
+
+## Backlog (abbreviated)
+
+**P1:** Push reminders, profile screen, optional LLM suggestions  
+**P2:** OAuth, settings, analytics  
+**Deferred:** Subscription paywall (`.agents/memory/subscription-paywall.md`)
+
+## Known limitations
+
+- No live LLM for Elevate or pillar suggestions in production path.
+- Manual completion % depends on **progress logs**, not task checkboxes alone.
+- `toggleTask` is complete-only (no un-check in mobile client).
+- Bless Points not redeemable in MVP.
+- Goals without `source = 'elevate'` after Elevate flow need v5 migration applied.
+
+## Related docs
+
+- [`architecture.md`](../architecture.md)
+- [`memory/test_credentials.md`](test_credentials.md)
+- [`design_guidelines.json`](../design_guidelines.json)

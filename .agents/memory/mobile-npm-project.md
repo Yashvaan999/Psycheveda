@@ -5,19 +5,32 @@ description: Where npm packages must be installed in this repo and how to get pa
 
 # Installing npm packages for the Expo app
 
-The actual app is the Expo project in `mobile/` (its own `package.json`; the
-workflow runs `cd mobile && npx expo start`). The Replit package-management
-tool (`installLanguagePackages`) installs into the **workspace root**
-`package.json` / `node_modules`, NOT into `mobile/`. A package installed that way
-will be missing at runtime ("Unable to resolve module X").
+The production app lives in **`mobile/`** (own `package.json`).
 
-**To install a runtime dependency for the app:** run npm inside `mobile/`:
-`cd mobile && npm install --no-audit --legacy-peer-deps --save <pkg>`.
+**Local web dev:**
 
-`--legacy-peer-deps` is required: the project has a pre-existing peer conflict
-(expo-router wants a specific expo-linking version) that makes plain
-`npm install` fail with ERESOLVE.
+```bash
+cd mobile && npm install --legacy-peer-deps && npm run web
+```
 
-**Why:** monorepo-ish layout where the managed tool targets root but the app is a
-subdir. **How to apply:** any time the app needs a new npm dependency (e.g. the
-`openai` package used by the server API route).
+→ **http://localhost:5001** (`expo start --web --port 5001`)
+
+**Replit** may still use port 5000 in `.replit` workflow — adjust if preview conflicts with macOS AirPlay.
+
+The workspace **root** `package.json` is a separate Vite stub — do not install mobile runtime deps there.
+
+## Install a new package
+
+```bash
+cd mobile && npm install --no-audit --legacy-peer-deps --save <pkg>
+```
+
+`--legacy-peer-deps` is required (expo-router / expo-linking peer conflict).
+
+## Progress-related deps (already present)
+
+- `@supabase/supabase-js` — data + auth
+- `react-native-svg` — TrackModal sparkline
+- `@react-native-async-storage/async-storage` — Supabase session
+
+Update `architecture.md` when adding libraries that change tracking or auth.
