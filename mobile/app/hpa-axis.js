@@ -35,31 +35,12 @@ export default function HpaAxis() {
           <Pressable onPress={() => router.replace('/dashboard')} hitSlop={10}>
             <ArrowLeft size={20} strokeWidth={1.5} color={p.text} />
           </Pressable>
-          <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>Gut-Brain</Text>
+          <Text style={{ flex: 1, color: p.text, fontFamily: fonts.bodyMedium, fontSize: 14 }}>Revive</Text>
           <GlowSparkle size={16} color={colors.gold} />
         </View>
 
-        {/* Hero */}
-        <View style={[styles.hero, { borderColor: withAlpha(p.primary, 0.30) }]}>
-          <Image source={{ uri: p.image }} style={styles.heroImg} resizeMode="cover" />
-          <LinearGradient
-            colors={[withAlpha(p.bg, 0.10), withAlpha(p.bg, 0.95)]}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.heroInner}>
-            <Text style={[styles.eyebrow, { color: p.primary }]}>{p.name}</Text>
-            <Text style={[styles.eyebrowSub, { color: withAlpha(p.primary, 0.65) }]}>{p.label}</Text>
-            <Text style={[styles.heroTitle, { color: p.text }]}>
-              Tuning your circadium alchemy
-            </Text>
-            <Text style={[styles.heroDesc, { color: p.subtext }]}>
-              {p.description}
-            </Text>
-          </View>
-        </View>
-
         {/* Phase chooser */}
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginBottom: 24 }}>
           <Text style={[styles.sectionLabel, { color: p.subtext }]}>Explore phases</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
             {PHASES.map((ph) => {
@@ -86,18 +67,26 @@ export default function HpaAxis() {
           </View>
         </View>
 
-        {/* Education */}
-        <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 24 }]}>
-          <Text style={[styles.cardTitle, { color: p.text }]}>What is the Gut-Brain?</Text>
-          <Text style={[styles.cardBody, { color: p.subtext }]}>
-            The Hypothalamic-Pituitary-Adrenal axis governs your stress and recovery cycle.
-            Cortisol rises with the sun to wake you; melatonin pours at dusk to restore you.
-            Honor this rhythm and your body honors you.
-          </Text>
+        {/* Hero */}
+        <View style={[styles.hero, { borderColor: withAlpha(p.primary, 0.30) }]}>
+          <Image source={{ uri: p.image }} style={styles.heroImg} resizeMode="cover" />
+          <LinearGradient
+            colors={[withAlpha(p.bg, 0.10), withAlpha(p.bg, 0.95)]}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.heroInner}>
+            <Text style={[styles.eyebrow, { color: p.primary }]}>{p.name}</Text>
+            <Text style={[styles.eyebrowSub, { color: withAlpha(p.primary, 0.65) }]}>{p.label}</Text>
+            <Text style={[styles.heroTitle, { color: p.text }]}>
+              {p.tagline}
+            </Text>
+            <Text style={[styles.heroDesc, { color: p.subtext }]}>
+              {p.description}
+            </Text>
+          </View>
         </View>
 
-        <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 12 }]}>
-          <Text style={[styles.cardTitle, { color: p.text }]}>Daily Reset</Text>
+        <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 24 }]}>
           <Pressable
             onPress={() => router.push('/gut-brain-plan')}
             style={({ pressed }) => [
@@ -109,6 +98,11 @@ export default function HpaAxis() {
             <ClipboardList size={16} strokeWidth={1.8} color={p.bg} />
             <Text style={[styles.planBtnText, { color: p.bg }]}>Plan</Text>
           </Pressable>
+          <Text style={[styles.cardBody, { color: p.subtext }]}>
+            Revive aligns your stress and recovery cycle with your body&apos;s natural rhythm.
+            Cortisol rises with the sun to wake you; melatonin pours at dusk to restore you.
+            Honor this rhythm and your body honors you.
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -129,7 +123,7 @@ const styles = StyleSheet.create({
   heroDesc: { fontSize: 14, marginTop: 12, fontFamily: fonts.body, lineHeight: 22 },
   planBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    alignSelf: 'flex-start', marginTop: 14,
+    alignSelf: 'flex-start', marginBottom: 14,
     paddingVertical: 10, paddingHorizontal: 22, borderRadius: radius.pill,
   },
   planBtnText: { fontSize: 14, fontFamily: fonts.bodyMedium },
@@ -140,7 +134,6 @@ const styles = StyleSheet.create({
     flex: 1, borderRadius: radius.xl, paddingVertical: 12, paddingHorizontal: 8, borderWidth: 1,
   },
   card: { padding: 20, borderRadius: radius.xl, borderWidth: 1 },
-  cardTitle: { fontFamily: fonts.display, fontSize: 18, marginBottom: 8 },
   cardBody: { fontSize: 14, lineHeight: 22, fontFamily: fonts.body },
   kvKey: { fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', fontFamily: fonts.bodyMedium, marginBottom: 2 },
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
@@ -6,10 +6,12 @@ import {
   Users, Briefcase, Coins, HeartPulse, Sparkles, ChevronRight, Check, Rocket,
 } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
-import api from '../src/lib/api';
+import api, { invalidateDashboardCache } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
+import DailyOracleModal, { DailyOracleTrigger } from '../src/components/DailyOracleCard';
 import { Button, Card, Badge } from '../src/components/ui';
 import TrackModal from '../src/components/TrackModal';
+import { markOracleAbsorbed, resolveDailyOracle } from '../src/lib/psychologicalTips';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const PILLAR_ICONS = {
@@ -25,23 +27,97 @@ export default function Dashboard() {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [trackOpen, setTrackOpen] = useState(false);
+  const [togglingIds, setTogglingIds] = useState(() => new Set());
+  const [oracleMode, setOracleMode] = useState(null);
+  const [oracleTip, setOracleTip] = useState(null);
+  const [oracleLoading, setOracleLoading] = useState(true);
+  const [absorbing, setAbsorbing] = useState(false);
+  const [oracleOpen, setOracleOpen] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
+    if (!silent && !hasLoadedRef.current) setLoading(true);
     try {
-      const [g, t, s] = await Promise.all([api.listGoals(), api.tasksToday(), api.stats()]);
+      const { goals: g, tasks: t, stats: s } = await api.fetchDashboard({ force: silent });
       setGoals(g);
       setTasks(t);
       setStats(s);
+      hasLoadedRef.current = true;
     } catch (e) { console.warn(e); }
     finally { setLoading(false); }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const loadOracle = useCallback(async (silent = false) => {
+    if (!user?.id) {
+      setOracleMode(null);
+      setOracleTip(null);
+      setOracleLoading(false);
+      return;
+    }
+    if (!silent) setOracleLoading(true);
+    try {
+      const { mode, tip } = await resolveDailyOracle(user.id);
+      setOracleMode(mode);
+      setOracleTip(tip);
+    } catch (e) {
+      console.warn(e);
+      if (!silent) {
+        setOracleMode(null);
+        setOracleTip(null);
+      }
+    } finally {
+      setOracleLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(useCallback(() => {
+    const silent = hasLoadedRef.current;
+    load(silent);
+    loadOracle(silent);
+  }, [load, loadOracle]));
+
+  useEffect(() => {
+    if (!oracleLoading && oracleMode === 'expanded') {
+      setOracleOpen(true);
+    }
+  }, [oracleLoading, oracleMode]);
+
+  const absorbOracle = async () => {
+    if (!user?.id || !oracleTip || absorbing) return;
+    setAbsorbing(true);
+    try {
+      await markOracleAbsorbed(user.id, oracleTip.id);
+      setOracleMode('collapsed');
+      setOracleOpen(false);
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setAbsorbing(false);
+    }
+  };
 
   const completeTask = async (id) => {
-    await api.toggleTask(id);
-    try { await refresh(); } catch { /* best-effort */ }
-    load();
+    const task = tasks.find((t) => t.id === id);
+    if (!task || task.completed || togglingIds.has(id)) return;
+
+    setTogglingIds((prev) => new Set(prev).add(id));
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: true } : t)));
+
+    try {
+      await api.toggleTask(id);
+      invalidateDashboardCache();
+      refresh().catch(() => {});
+      api.fetchDashboard({ force: true }).then(({ stats: s }) => setStats(s)).catch(() => {});
+    } catch (e) {
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: false } : t)));
+      console.warn(e);
+    } finally {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   };
 
   const rawName = user?.full_name?.split(' ')[0] || 'friend';
@@ -49,8 +125,23 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <Text style={styles.greet}>🙏 {firstName}</Text>
+      {!oracleLoading && oracleTip && (
+        <DailyOracleTrigger tip={oracleTip} onPress={() => setOracleOpen(true)} />
+      )}
+
+      <Text style={[styles.greet, oracleTip && !oracleLoading && styles.greetBelowTips]}>
+        🙏 {firstName}
+      </Text>
       <Text style={styles.sub}>Nurture your mind and soul</Text>
+
+      <DailyOracleModal
+        open={oracleOpen}
+        tip={oracleTip}
+        absorbed={oracleMode === 'collapsed'}
+        onClose={() => setOracleOpen(false)}
+        onAbsorb={absorbOracle}
+        absorbing={absorbing}
+      />
 
       {loading ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
@@ -76,7 +167,10 @@ export default function Dashboard() {
                     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
                     t.completed && { opacity: 0.55 },
                   ]}>
-                    <Pressable onPress={() => !t.completed && completeTask(t.id)} disabled={t.completed}>
+                    <Pressable
+                      onPress={() => completeTask(t.id)}
+                      disabled={t.completed || togglingIds.has(t.id)}
+                    >
                       <View style={[
                         styles.checkbox,
                         t.completed && { backgroundColor: colors.secondary, borderColor: colors.secondary },
@@ -196,6 +290,7 @@ export default function Dashboard() {
 
 const styles = StyleSheet.create({
   greet: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
+  greetBelowTips: { marginTop: 18 },
   sub: { color: colors.subtext, fontSize: 14, marginTop: 4, fontFamily: fonts.body },
   section: { marginTop: 28 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },

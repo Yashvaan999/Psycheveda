@@ -10,6 +10,13 @@ const PILLAR_LABELS = {
   inner_wellness: 'Inner Wellness',
 };
 
+const DASHBOARD_CACHE_MS = 4000;
+let dashboardCache = { at: 0, data: null };
+
+export function invalidateDashboardCache() {
+  dashboardCache = { at: 0, data: null };
+}
+
 export const api = {
   register: async ({ email, password, full_name }) => {
     const { data, error } = await supabase.auth.signUp({
@@ -148,37 +155,81 @@ export const api = {
   },
 
   listGoals: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('goals')
-      .select('*, mini_tasks(*)')
+      .select('id, title, pillar, source, estimate_unit, estimate_value, created_at, deadline_at')
       .order('created_at', { ascending: false });
     if (error) throw error;
-
-    let logCountByGoal = {};
-    try {
-      const { data: logs } = await supabase
-        .from('goal_progress_logs')
-        .select('goal_id')
-        .eq('user_id', user.id);
-      for (const log of (logs || [])) {
-        logCountByGoal[log.goal_id] = (logCountByGoal[log.goal_id] || 0) + 1;
-      }
-    } catch { /* table may not exist */ }
 
     return (data || []).map((g) => {
       const totalDays = g.estimate_unit === 'days'
         ? g.estimate_value
         : Math.ceil(g.estimate_value / 24);
-      const isElevate = g.source === 'elevate';
       return {
         ...g,
         pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
-        mini_tasks: g.mini_tasks || [],
-        progress_log_count: isElevate ? 0 : (logCountByGoal[g.id] || 0),
+        mini_tasks: [],
+        progress_log_count: 0,
         total_days: totalDays,
       };
     });
+  },
+
+  fetchDashboard: async ({ force = false } = {}) => {
+    const now = Date.now();
+    if (!force && dashboardCache.data && now - dashboardCache.at < DASHBOARD_CACHE_MS) {
+      return dashboardCache.data;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      const empty = { goals: [], tasks: [], stats: {} };
+      dashboardCache = { at: now, data: empty };
+      return empty;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const [goalsRes, tasksRes, profileRes, journalRes, gratitudeRes] = await Promise.all([
+      supabase
+        .from('goals')
+        .select('id, title, pillar, source, estimate_unit, estimate_value, created_at, deadline_at')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('mini_tasks')
+        .select('id, title, completed, source, time_window, scheduled_time')
+        .eq('scheduled_for', today),
+      supabase.from('profiles').select('bless_points_balance, veda_streak').eq('id', user.id).single(),
+      supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+      supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+    ]);
+
+    if (goalsRes.error) throw goalsRes.error;
+    if (tasksRes.error) throw tasksRes.error;
+
+    const payload = {
+      goals: (goalsRes.data || []).map((g) => {
+        const totalDays = g.estimate_unit === 'days'
+          ? g.estimate_value
+          : Math.ceil(g.estimate_value / 24);
+        return {
+          ...g,
+          pillar_label: PILLAR_LABELS[g.pillar] || g.pillar,
+          mini_tasks: [],
+          progress_log_count: 0,
+          total_days: totalDays,
+        };
+      }),
+      tasks: tasksRes.data || [],
+      stats: {
+        bless_points_balance: profileRes.data?.bless_points_balance || 0,
+        veda_streak: profileRes.data?.veda_streak || 0,
+        journal_entries_today: journalRes.data?.length || 0,
+        gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
+      },
+    };
+
+    dashboardCache = { at: now, data: payload };
+    return payload;
   },
 
   goalTrackingData: async () => {
@@ -401,7 +452,9 @@ export const api = {
   tasksToday: async () => {
     const today = new Date().toISOString().slice(0, 10);
     const { data, error } = await supabase
-      .from('mini_tasks').select('*').eq('scheduled_for', today);
+      .from('mini_tasks')
+      .select('id, title, completed, source, time_window, scheduled_time')
+      .eq('scheduled_for', today);
     if (error) throw error;
     return data || [];
   },
@@ -595,9 +648,8 @@ export const api = {
     return { success: true };
   },
 
-  // Builds a customized GeneratedPlan from the user's input matrix using the
-  // Psycheveda rules. Fully local — no AI or network call — so it works
-  // instantly with no API key.
+  // Builds a customized GeneratedPlan from the user's context metrics via the
+  // elevateRulesMatrix.json rule engine (v2). Fully local — no AI or network.
   generateElevatePlan: async (matrix) => {
     const plan = buildElevatePlan(matrix);
     if (!plan || !Array.isArray(plan.dailyTasks) || plan.dailyTasks.length === 0) {

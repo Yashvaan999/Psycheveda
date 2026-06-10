@@ -55,12 +55,35 @@ API prefix: `/api`
 
 ## Test flows
 
+### Better You Tips
+
+1. Sign in and open **Dashboard**.
+2. **Better You Tips** card appears at the top (preview + Sunrise icon).
+3. Modal auto-opens on first visit if not absorbed; tap **Absorb Strategy** to dismiss.
+4. Tap the card again to reopen; pillar + content only (no title field in JSON).
+
+### Revive + Plan assessment
+
+1. Bottom nav → **Revive** (`/hpa-axis`).
+2. Switch phase chips; verify hero copy updates.
+3. Tap **Plan** → complete or resume 30-question assessment.
+4. On results: tap info icon beside tier → stage carousel (Survivor → Superhero).
+5. **Elevate Yourself** → demographics form → generates plan.
+6. **Consult a Life Coach** → opens `/life-coach` coming-soon screen → **Return to my results**.
+
+### Consult a Life Coach (placeholder)
+
+1. Complete Plan assessment to reach **results**.
+2. Tap **Consult a Life Coach** (below **Elevate Yourself**).
+3. Verify coming-soon copy, feature pills, and back navigation.
+
 ### Elevate (mini-tasks, no progress logs)
 
 1. Apply migrations **v1–v5** in Supabase.
-2. Complete **Gut-Brain** → **Elevate Yourself** → creates `source = 'elevate'` goal + `mini_tasks`.
-3. On **Dashboard**, check off today's Elevate mini-tasks.
+2. Complete **Revive Plan** → **Elevate Yourself** → creates `source = 'elevate'` goal + `mini_tasks` (6–7 habits/day × plan duration).
+3. On **Dashboard**, check off today's Elevate mini-tasks (instant checkbox feedback).
 4. Open goal detail or **Track** → completion % and **sub-task history** (no Progress logs section).
+5. Navigate away and back to Dashboard — content should refresh silently without long blank/spinner states.
 
 ### Manual goals (progress logs)
 

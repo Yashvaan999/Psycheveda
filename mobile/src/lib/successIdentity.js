@@ -28,12 +28,51 @@ const VECTORS = [
   { code: 'E', key: 'stressResistance', label: 'Stress & Anxiety Resistance', questions: [4, 5, 6, 15, 21, 22, 29, 30] },
 ];
 
-const TIERS = [
-  { name: 'SURVIVOR', max: 25, description: 'Unconscious Creation, Biologically Bankrupt' },
-  { name: 'SOLDIER', max: 50, description: 'Unconscious Creation, Willpower-Depleted Functional State' },
-  { name: 'WARRIOR', max: 75, description: 'Conscious Creation, Active Ambition vs Variable Biochemistry Balance' },
-  { name: 'SUPERHERO', max: Infinity, description: 'Conscious Creation, Optimal Unstoppable Integration' },
+export const IDENTITY_STAGES = [
+  {
+    order: 1,
+    name: 'SURVIVOR',
+    title: 'Survivor',
+    subtitle: 'Unconscious Creation & Resource Depletion',
+    body:
+      'The Survivor stage represents a state of complete biological and emotional bankruptcy. Operating in a chronic sympathetic nervous system loop (fight-or-flight), the body enters a protective "self-preservation mode" to preserve basic homeostatic functions. This manifests as intense brain fog, sugar cravings, daily energy crashes, and high systemic stress. Because physical energy is completely depleted, the brain actively hoards its resources, making it incredibly difficult to find the motivation or cognitive clarity needed to pursue personal, career, or financial goals.',
+  },
+  {
+    order: 2,
+    name: 'SOLDIER',
+    title: 'Soldier',
+    subtitle: 'Unconscious Creation & Willpower Overuse',
+    body:
+      'The Soldier stage defines an individual who is functional but deeply depleted. While Soldiers successfully execute their daily routines and get things done, they do so by forcing themselves forward through grueling, unsustainable willpower. This constant friction over-relies on psychological drive while ignoring baseline physical exhaustion, leading to common mid-afternoon crashes, mood swings, and a high vulnerability to stress or external criticism. The system operates on artificial adrenaline and stimulants, leaving the individual just one unexpected obstacle away from total burnout.',
+  },
+  {
+    order: 3,
+    name: 'WARRIOR',
+    title: 'Warrior',
+    subtitle: 'Conscious Creation & Variable Balance',
+    body:
+      'The Warrior stage marks the transition into conscious awareness, intentional lifestyle design, and active ambition. Warriors possess a strong internal sense of purpose, upright physical confidence, and solid histories of achieving the goals they set for themselves. However, they are still actively learning how to perfectly balance mental psychological drive with steady, predictable biochemistry. Because their energy resources still fluctuate, they suffer from occasional erratic energy spikes and sudden burnout phases when their physical engine fails to keep pace with their high mental standards.',
+  },
+  {
+    order: 4,
+    name: 'SUPERHERO',
+    title: 'Superhero',
+    subtitle: 'Conscious Creation & Optimal Flow',
+    body:
+      'The Superhero stage is the ultimate destination of total mind-body integration and unstoppable execution. In this peak performance state, actions flow natively and consistently without requiring heavy cognitive friction or forced willpower. Superheroes enjoy maximum cognitive processing clarity, exceptional adaptive resilience to changing environments, and highly balanced bio-energetic resources. Because their physical and mental systems operate in perfect unison, they achieve complex milestones with ease, though they must periodically audit their high drive to prevent environmental over-extension.',
+  },
 ];
+
+const TIERS = IDENTITY_STAGES.map((stage, index) => ({
+  name: stage.name,
+  max: index < IDENTITY_STAGES.length - 1 ? (index + 1) * 25 : Infinity,
+  description: stage.subtitle,
+}));
+
+export function stageIndexForTier(tierName) {
+  const idx = IDENTITY_STAGES.findIndex((s) => s.name === String(tierName || '').toUpperCase());
+  return idx >= 0 ? idx : 0;
+}
 
 function normalizeValue(value) {
   if (value == null) return null;

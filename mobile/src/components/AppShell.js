@@ -15,7 +15,7 @@ const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: Home },
   { to: '/journal', label: 'Journal', icon: BookOpen },
   { to: '/gratitude', label: 'Gratitude', icon: Heart },
-  { to: '/hpa-axis', label: 'Gut-Brain', icon: Sparkles, iconColor: colors.gold, glow: true },
+  { to: '/hpa-axis', label: 'Revive', icon: Sparkles, iconColor: colors.gold, glow: true },
 ];
 
 export default function AppShell({ children }) {
@@ -26,19 +26,17 @@ export default function AppShell({ children }) {
   const [blessOpen, setBlessOpen] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [gratLogged, setGratLogged] = useState(null);
   const [reminders, setReminders] = useState([]);
 
-  const refreshStats = useCallback(async () => {
+  const refreshReminders = useCallback(async () => {
     if (!user) return;
     try {
-      const [s, r] = await Promise.all([api.stats(), api.goalReminders()]);
-      setGratLogged(!!s.gratitude_logged_today);
+      const r = await api.goalReminders();
       setReminders(r || []);
     } catch { /* ignore */ }
   }, [user]);
 
-  useEffect(() => { refreshStats(); }, [refreshStats, pathname]);
+  useEffect(() => { refreshReminders(); }, [refreshReminders, pathname]);
 
   const bless = user?.bless_points_balance ?? 0;
   const streak = user?.veda_streak ?? 0;
@@ -48,7 +46,7 @@ export default function AppShell({ children }) {
     router.replace('/auth');
   };
 
-  const topPad = Platform.OS === 'web' ? 67 : insets.top + 8;
+  const topPad = Platform.OS === 'web' ? 50 : insets.top + 8;
   const botPad = Platform.OS === 'web' ? 84 : 60 + insets.bottom;
 
   return (

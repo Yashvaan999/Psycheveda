@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info, Rocket } from 'lucide-react-native';
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info, Rocket, HeartHandshake } from 'lucide-react-native';
 import api from '../src/lib/api';
 import { Button, Input, Label } from '../src/components/ui';
 import Modal from '../src/components/Modal';
-import calculateSuccessIdentity from '../src/lib/successIdentity';
+import calculateSuccessIdentity, { IDENTITY_STAGES, stageIndexForTier } from '../src/lib/successIdentity';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const SUB_LABELS = [
@@ -97,6 +97,8 @@ export default function GutBrainPlanScreen() {
   const [lang, setLang] = useState('en');
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [infoKey, setInfoKey] = useState(null);
+  const [tierStageOpen, setTierStageOpen] = useState(false);
+  const [tierViewIdx, setTierViewIdx] = useState(0);
   const [elevateOpen, setElevateOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [elevateErr, setElevateErr] = useState('');
@@ -190,6 +192,18 @@ export default function GutBrainPlanScreen() {
     persist({}, false);
   };
 
+  const currentTierIdx = useMemo(
+    () => stageIndexForTier(result.assignedTier),
+    [result.assignedTier]
+  );
+
+  const openTierStages = () => {
+    setTierViewIdx(currentTierIdx);
+    setTierStageOpen(true);
+  };
+
+  const viewedStage = IDENTITY_STAGES[tierViewIdx];
+
   const lowestParameter = useMemo(() => {
     const entries = Object.entries(result.subParameters || {});
     if (entries.length === 0) return null;
@@ -226,6 +240,7 @@ export default function GutBrainPlanScreen() {
         ...form,
         current_tier: result.assignedTier,
         lowest_parameter: lowestParameter,
+        assessmentAnswers: answers,
       });
       const goal = await api.createElevateGoal(plan);
       setElevateOpen(false);
@@ -252,14 +267,19 @@ export default function GutBrainPlanScreen() {
       <View style={[styles.screen, { paddingTop: insets.top + 28 }]}>
         <Pressable onPress={() => router.replace('/hpa-axis')} hitSlop={10} style={styles.exitBtn}>
           <ArrowLeft size={18} strokeWidth={1.6} color={colors.subtext} />
-          <Text style={styles.exitText}>Gut-Brain</Text>
+          <Text style={styles.exitText}>Revive</Text>
         </Pressable>
         <ScrollView contentContainerStyle={styles.resultBody} showsVerticalScrollIndicator={false}>
           <View style={styles.doneIcon}>
             <ClipboardCheck size={28} strokeWidth={1.6} color={colors.primary} />
           </View>
           <Text style={styles.resultEyebrow}>YOUR SUCCESS IDENTITY</Text>
-          <Text style={styles.tierName}>{result.assignedTier}</Text>
+          <View style={styles.tierNameRow}>
+            <Text style={styles.tierName}>{result.assignedTier}</Text>
+            <Pressable onPress={openTierStages} hitSlop={8} style={styles.tierInfoBtn}>
+              <Info size={18} strokeWidth={1.8} color={colors.primary} />
+            </Pressable>
+          </View>
           <Text style={styles.tierDesc}>{result.tierDescription}</Text>
 
           <View style={styles.overallCard}>
@@ -297,6 +317,14 @@ export default function GutBrainPlanScreen() {
             <Rocket size={17} strokeWidth={1.8} color={colors.white} />
             <Text style={{ color: colors.white, fontFamily: fonts.bodyMedium, fontSize: 15 }}>Elevate Yourself</Text>
           </Button>
+          <Button
+            variant="secondary"
+            onPress={() => router.push('/life-coach')}
+            style={{ alignSelf: 'stretch', marginTop: 12 }}
+          >
+            <HeartHandshake size={17} strokeWidth={1.8} color={colors.secondary} />
+            <Text style={{ color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 15 }}>Consult a Life Coach</Text>
+          </Button>
           <Pressable onPress={retake} hitSlop={8} style={{ marginTop: 16, marginBottom: 8 }}>
             <Text style={styles.retakeText}>Retake the assessment</Text>
           </Pressable>
@@ -311,6 +339,68 @@ export default function GutBrainPlanScreen() {
             <>
               <Text style={styles.infoScore}>Your score: {result.subParameters[infoKey]}%</Text>
               <Text style={styles.infoWhat}>{SUB_BY_KEY[infoKey].what}</Text>
+            </>
+          ) : null}
+        </Modal>
+
+        <Modal
+          open={tierStageOpen}
+          onClose={() => setTierStageOpen(false)}
+          title="Success Identity Stages"
+        >
+          {viewedStage ? (
+            <>
+              <View style={styles.tierStageNav}>
+                <Pressable
+                  onPress={() => setTierViewIdx((i) => Math.max(0, i - 1))}
+                  disabled={tierViewIdx === 0}
+                  hitSlop={10}
+                  style={[styles.tierStageArrow, tierViewIdx === 0 && styles.tierStageArrowDisabled]}
+                >
+                  <ChevronLeft size={22} strokeWidth={1.8} color={tierViewIdx === 0 ? colors.border : colors.text} />
+                </Pressable>
+                <Text style={styles.tierStageCounter}>
+                  Stage {viewedStage.order} of {IDENTITY_STAGES.length}
+                </Text>
+                <Pressable
+                  onPress={() => setTierViewIdx((i) => Math.min(IDENTITY_STAGES.length - 1, i + 1))}
+                  disabled={tierViewIdx === IDENTITY_STAGES.length - 1}
+                  hitSlop={10}
+                  style={[
+                    styles.tierStageArrow,
+                    tierViewIdx === IDENTITY_STAGES.length - 1 && styles.tierStageArrowDisabled,
+                  ]}
+                >
+                  <ChevronRight
+                    size={22}
+                    strokeWidth={1.8}
+                    color={tierViewIdx === IDENTITY_STAGES.length - 1 ? colors.border : colors.text}
+                  />
+                </Pressable>
+              </View>
+
+              <View style={styles.tierStageDots}>
+                {IDENTITY_STAGES.map((stage, i) => (
+                  <View
+                    key={stage.name}
+                    style={[
+                      styles.tierStageDot,
+                      i === tierViewIdx && styles.tierStageDotActive,
+                      i === currentTierIdx && styles.tierStageDotCurrent,
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {tierViewIdx === currentTierIdx ? (
+                <View style={styles.tierStageBadge}>
+                  <Text style={styles.tierStageBadgeText}>Your current stage</Text>
+                </View>
+              ) : null}
+
+              <Text style={styles.tierStageTitle}>{viewedStage.title}</Text>
+              <Text style={styles.tierStageSubtitle}>{viewedStage.subtitle}</Text>
+              <Text style={styles.tierStageBody}>{viewedStage.body}</Text>
             </>
           ) : null}
         </Modal>
@@ -583,9 +673,88 @@ const styles = StyleSheet.create({
     marginTop: 18, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase',
     color: colors.subtext, fontFamily: fonts.bodyMedium,
   },
+  tierNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
   tierName: {
     fontFamily: fonts.display, fontSize: 38, color: colors.primary,
-    marginTop: 6, letterSpacing: 1, textAlign: 'center',
+    letterSpacing: 1, textAlign: 'center',
+  },
+  tierInfoBtn: { padding: 4, marginTop: 4 },
+  tierStageNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  tierStageArrow: { padding: 4 },
+  tierStageArrowDisabled: { opacity: 0.35 },
+  tierStageCounter: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.subtext,
+  },
+  tierStageDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  tierStageDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: withAlpha(colors.primary, 0.18),
+  },
+  tierStageDotActive: {
+    width: 22,
+    backgroundColor: colors.primary,
+  },
+  tierStageDotCurrent: {
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
+  tierStageBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: withAlpha(colors.primary, 0.12),
+    borderWidth: 1,
+    borderColor: withAlpha(colors.primary, 0.28),
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 12,
+  },
+  tierStageBadgeText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.primary,
+  },
+  tierStageTitle: {
+    fontFamily: fonts.display,
+    fontSize: 26,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  tierStageSubtitle: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.primary,
+    marginBottom: 14,
+    lineHeight: 19,
+  },
+  tierStageBody: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 22,
   },
   tierDesc: {
     fontFamily: fonts.body, fontSize: 13.5, color: colors.subtext,

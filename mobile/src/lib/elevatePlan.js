@@ -1,27 +1,45 @@
-// Rule-based "Elevate Yourself" plan generator.
+// Rule-matrix "Elevate Yourself" plan generator (v2).
 //
-// Builds a customized daily goal plan from the user's input matrix WITHOUT any
-// AI / external API. The output shape matches what createElevateGoal expects:
-//   { planTitle, macroGoalDurationDays, dailyTasks: [{ taskId, taskTitle,
-//     timeWindow, scheduledTimeRelative, psychologicalJustification }] }
-//
-// Personalization comes from: current tier (which transition the plan targets),
-// the user's weakest parameter, food preference, and their actual wake/sleep
-// schedule (task times are computed relative to those).
+// Reads elevateRulesMatrix.json and builds a customized daily goal plan from the
+// user's context metrics. Output shape matches createElevateGoal in api.js.
+
+import rulesMatrixDoc from './elevateRulesMatrix.json';
 
 const TIER_ORDER = ['SURVIVOR', 'SOLDIER', 'WARRIOR', 'SUPERHERO'];
-const TIER_DAYS = { SURVIVOR: 7, SOLDIER: 14, WARRIOR: 21, SUPERHERO: 21 };
-
-const PLAN_TITLES = {
-  SURVIVOR: 'Physiological Stabilization Loop',
-  SOLDIER: 'Habit Automation Loop',
-  WARRIOR: 'Peak Performance Loop',
-  SUPERHERO: 'Mastery Maintenance Loop',
+const TIER_TITLE = {
+  SURVIVOR: 'Survivor',
+  SOLDIER: 'Soldier',
+  WARRIOR: 'Warrior',
+  SUPERHERO: 'Superhero',
 };
+
+const DAILY_TASK_LIMIT = 7;
+
+const PHASE_META = {
+  morningPhase: { timeWindow: 'Morning', schedule: 'wake', baseOffset: 10, stagger: 20, maxSlots: 2 },
+  afternoonPhase: { timeWindow: 'Afternoon', schedule: 'wake', baseOffset: 330, stagger: 25, maxSlots: 2 },
+  eveningPhase: { timeWindow: 'Evening', schedule: 'sleep', baseOffset: -150, stagger: -30, maxSlots: 3 },
+};
+
+// Within each phase, earlier ids are kept when slots are tight.
+const PHASE_RULE_ORDER = {
+  morningPhase: ['m_hydration_base', 'm_circadian_light', 'm_psych_framing'],
+  afternoonPhase: ['a_metabolic_fueling', 'a_stimulant_sunset'],
+  eveningPhase: ['e_nlp_reframing', 'e_digital_sunset', 'e_somatic_output'],
+};
+
+// One optional evening/morning booster competes for the 7th slot after the 6 core habits.
+const OPTIONAL_BOOSTER_RULES = ['e_somatic_output', 'm_psych_framing'];
+
+const CORPORATE_OCCUPATION_HINTS = [
+  'entrepreneur', 'corporate', 'founder', 'ceo', 'cto', 'coo', 'business', 'executive',
+  'manager', 'consultant', 'startup', 'director', 'vp', 'software', 'engineer', 'developer',
+  'analyst', 'banker', 'finance', 'sales', 'marketing', 'product', 'operations', 'lawyer',
+  'accountant', 'architect', 'designer', 'professional',
+];
 
 // --- Time helpers ---------------------------------------------------------
 
-// Parses "06:30", "6:30 AM", "18:00", "6 PM" -> minutes since midnight.
 function parseTime(str) {
   if (!str) return null;
   const s = String(str).trim().toLowerCase();
@@ -46,256 +64,246 @@ function formatTime(totalMin) {
   return `~${h12}:${String(min).padStart(2, '0')} ${ampm}`;
 }
 
-function foodKind(pref) {
-  const p = String(pref || '').toLowerCase();
-  if (p.includes('vegan')) return 'vegan';
-  if (p.includes('non')) return 'nonveg';
-  if (p.includes('veg')) return 'veg';
-  return 'any';
+function normalizeTierKey(tier) {
+  const t = String(tier || 'SURVIVOR').toUpperCase();
+  return TIER_ORDER.includes(t) ? t : 'SURVIVOR';
 }
 
-function nutritionTask(kind, atMin, audience) {
-  const map = {
-    vegan: 'Eat a warm, plant-protein lunch (lentils, tofu, or beans) with cooked greens',
-    veg: 'Eat a warm, easy-digest vegetarian lunch with paneer or legumes and cooked greens',
-    nonveg: 'Eat a lean-protein lunch (eggs, fish, or chicken) with vegetables',
-    any: 'Eat a balanced, protein-forward lunch with vegetables',
-  };
-  return {
-    taskId: 'midday_nutrition_anchor',
-    taskTitle: map[kind] || map.any,
-    timeWindow: 'Afternoon',
-    scheduledTimeRelative: formatTime(atMin),
-    psychologicalJustification: `An anti-inflammatory, protein-forward midday meal keeps blood sugar steady and prevents the afternoon energy crash${audience ? ` for ${audience}` : ''}.`,
-  };
-}
-
-// Targeted task addressing the user's lowest-scoring parameter.
-function weakestParamTask(label, wake) {
-  const byLabel = {
-    'Bio-Energy Balance': {
-      taskId: 'bioenergy_breakfast',
-      taskTitle: 'Eat a protein + fiber breakfast within 60 minutes of waking',
-      timeWindow: 'Morning',
-      at: wake + 45,
-      why: 'Early, balanced fuel stabilizes blood sugar and rebuilds your bio-energy reserve, your weakest area.',
-    },
-    'Cognitive Performance': {
-      taskId: 'single_task_focus_drill',
-      taskTitle: 'Do one 15-minute single-task focus block with the phone in another room',
-      timeWindow: 'Afternoon',
-      at: wake + 360,
-      why: 'Distraction-free reps directly train the cognitive performance you scored lowest on.',
-    },
-    'Goal-Pursuit Readiness': {
-      taskId: 'priority_first_action',
-      taskTitle: 'Write your #1 priority for the day and take the first small step before anything else',
-      timeWindow: 'Morning',
-      at: wake + 30,
-      why: 'Acting on your top priority first builds the goal-pursuit momentum you currently lack.',
-    },
-    'Physical Base Asset': {
-      taskId: 'mobility_routine',
-      taskTitle: 'Do a 5-minute mobility and stretch routine',
-      timeWindow: 'Morning',
-      at: wake + 50,
-      why: 'Daily gentle movement rebuilds the physical base that scored lowest, without overstretching you.',
-    },
-    'Stress & Anxiety Resistance': {
-      taskId: 'box_breathing',
-      taskTitle: 'Practice box breathing (inhale 4, hold 4, exhale 4, hold 4) for 5 minutes',
-      timeWindow: 'Afternoon',
-      at: wake + 420,
-      why: 'Paced breathing down-regulates the nervous system and builds the stress resistance you scored lowest on.',
-    },
-  };
-  const t = byLabel[label];
-  if (!t) return null;
-  return {
-    taskId: t.taskId,
-    taskTitle: t.taskTitle,
-    timeWindow: t.timeWindow,
-    scheduledTimeRelative: formatTime(t.at),
-    psychologicalJustification: t.why,
-  };
-}
-
-// --- Per-tier base routines ----------------------------------------------
-
-function survivorTasks(wake, sleep, kind, audience) {
-  return [
-    {
-      taskId: 'hydration_first',
-      taskTitle: 'Drink a full glass of water before anything else',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 5),
-      psychologicalJustification: 'Rehydrating on waking restarts basic metabolism with zero friction.',
-    },
-    {
-      taskId: 'morning_daylight_anchor',
-      taskTitle: 'Step into natural daylight for 10 minutes',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 15),
-      psychologicalJustification: 'Morning light locks your circadian cortisol rhythm so sleep and energy can stabilize.',
-    },
-    {
-      taskId: 'gentle_walk',
-      taskTitle: 'Take a slow, easy 10-minute walk',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 60),
-      psychologicalJustification: 'Light movement regulates the nervous system without the fatigue of a hard workout.',
-    },
-    nutritionTask(kind, wake + 360, audience),
-    {
-      taskId: 'screen_curfew',
-      taskTitle: 'Switch off screens and dim the lights',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 45),
-      psychologicalJustification: 'Cutting blue light before bed lets melatonin rise so your body can finally restore.',
-    },
-    {
-      taskId: 'gratitude_one_line',
-      taskTitle: 'Write one line of gratitude before sleep',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 90),
-      psychologicalJustification: 'A single positive reflection calms the mind and improves sleep onset.',
-    },
-  ];
-}
-
-function soldierTasks(wake, sleep, kind, audience) {
-  return [
-    {
-      taskId: 'morning_daylight_anchor',
-      taskTitle: 'Get 10 minutes of daylight and a cold water splash on the face',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 15),
-      psychologicalJustification: 'A consistent morning anchor automates alertness so you stop relying on willpower.',
-    },
-    {
-      taskId: 'moderate_movement',
-      taskTitle: 'Do a 20-minute brisk walk or light bodyweight workout',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 75),
-      psychologicalJustification: 'Moderate movement builds a proactive energy buffer for the rest of the day.',
-    },
-    nutritionTask(kind, wake + 330, audience),
-    {
-      taskId: 'energy_buffer_snack',
-      taskTitle: 'Have a small protein snack to pre-empt the afternoon dip',
-      timeWindow: 'Afternoon',
-      scheduledTimeRelative: formatTime(wake + 480),
-      psychologicalJustification: 'A timed buffer prevents the post-lunch crash before it starts.',
-    },
-    {
-      taskId: 'cognitive_journal',
-      taskTitle: 'Spend 5 minutes journaling what drained and energized you today',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 90),
-      psychologicalJustification: 'Cognitive journaling builds self-awareness and mental momentum.',
-    },
-    {
-      taskId: 'proactive_gratitude',
-      taskTitle: 'Log three things you are grateful for',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 60),
-      psychologicalJustification: 'Proactive gratitude trains an optimistic baseline that compounds over weeks.',
-    },
-  ];
-}
-
-function warriorTasks(wake, sleep, kind, audience) {
-  return [
-    {
-      taskId: 'deep_framing',
-      taskTitle: 'Do a 10-minute morning visualization of your day and identity',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 20),
-      psychologicalJustification: 'Early deep framing primes focus and aligns actions with your peak-performance identity.',
-    },
-    {
-      taskId: 'high_intensity_training',
-      taskTitle: 'Complete a 30–45 minute resistance or high-intensity workout',
-      timeWindow: 'Morning',
-      scheduledTimeRelative: formatTime(wake + 90),
-      psychologicalJustification: 'Structured intense training drives the biological optimization a Superhero tier demands.',
-    },
-    nutritionTask(kind, wake + 300, audience),
-    {
-      taskId: 'deep_work_block',
-      taskTitle: 'Protect one 90-minute deep-work block with no notifications',
-      timeWindow: 'Afternoon',
-      scheduledTimeRelative: formatTime(wake + 420),
-      psychologicalJustification: 'A daily deep-work block converts effort into measurable peak output.',
-    },
-    {
-      taskId: 'sleep_hygiene_environment',
-      taskTitle: 'Set the room cool and dark and stop screens for the night',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 60),
-      psychologicalJustification: 'Strict environmental sleep hygiene maximizes recovery for the next performance day.',
-    },
-    {
-      taskId: 'recovery_journal',
-      taskTitle: 'Review one win and one lesson, then plan tomorrow’s priority',
-      timeWindow: 'Evening',
-      scheduledTimeRelative: formatTime(sleep - 90),
-      psychologicalJustification: 'Closing the loop each night sustains momentum and manages secondary stressors.',
-    },
-  ];
-}
-
-const TIER_BUILDERS = {
-  SURVIVOR: survivorTasks,
-  SOLDIER: soldierTasks,
-  WARRIOR: warriorTasks,
-  SUPERHERO: warriorTasks,
-};
-
-// --- Public API -----------------------------------------------------------
-
-export function buildElevatePlan(matrix = {}) {
-  const tier = String(matrix.current_tier || 'SURVIVOR').toUpperCase();
-  const normalizedTier = TIER_ORDER.includes(tier) ? tier : 'SURVIVOR';
-
-  const duration = TIER_DAYS[normalizedTier] || 7;
-  const idx = TIER_ORDER.indexOf(normalizedTier);
-  const nextTier = TIER_ORDER[Math.min(idx + 1, TIER_ORDER.length - 1)];
-
-  // Default schedule: 6:30 AM wake, 10:30 PM sleep when not provided.
-  const wake = parseTime(matrix.wake_time) ?? 6 * 60 + 30;
-  let sleep = parseTime(matrix.sleep_time) ?? 22 * 60 + 30;
-  // If sleep parses before wake (e.g. 11 PM stored as 23:00 is fine, but a bad
-  // value), keep evening tasks sensible by ensuring sleep is after wake.
-  if (sleep <= wake) sleep = wake + 15 * 60;
-
-  const kind = foodKind(matrix.food_preference);
-  const ageNum = Number(matrix.age);
-  const audience = Number.isFinite(ageNum) && ageNum > 0
-    ? `a ${ageNum}-year-old ${matrix.food_preference ? String(matrix.food_preference).toLowerCase() : 'person'}`
-    : (matrix.food_preference ? `a ${String(matrix.food_preference).toLowerCase()} routine` : '');
-
-  const builder = TIER_BUILDERS[normalizedTier] || survivorTasks;
-  const dailyTasks = builder(wake, sleep, kind, audience);
-
-  // Insert a task targeting the weakest parameter, de-duplicating by taskId.
-  const weak = weakestParamTask(matrix.lowest_parameter, wake);
-  if (weak && !dailyTasks.some((t) => t.taskId === weak.taskId)) {
-    dailyTasks.splice(1, 0, weak);
-  }
-
-  const planTitle = `${duration}-Day ${PLAN_TITLES[normalizedTier]} (${capitalize(normalizedTier)} → ${capitalize(nextTier)})`;
-
-  return {
-    planTitle,
-    macroGoalDurationDays: duration,
-    dailyTasks,
-  };
+function tierTitle(tier) {
+  return TIER_TITLE[normalizeTierKey(tier)];
 }
 
 function capitalize(s) {
   const str = String(s || '').toLowerCase();
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function occupationMatches(userOccupation, required) {
+  if (!required) return true;
+  const u = String(userOccupation || '').toLowerCase().trim();
+  if (!u) return false;
+  if (required === 'Entrepreneurial / Corporate') {
+    return CORPORATE_OCCUPATION_HINTS.some((hint) => u.includes(hint));
+  }
+  const parts = String(required).toLowerCase().split(/[/,&]+/).map((p) => p.trim()).filter(Boolean);
+  return parts.some((part) => u.includes(part));
+}
+
+function matchesConditions(conditions, user) {
+  if (!conditions || typeof conditions !== 'object') return true;
+
+  const age = Number(user.age);
+  if (conditions.minAge != null && (!Number.isFinite(age) || age < conditions.minAge)) return false;
+  if (conditions.maxAge != null && (!Number.isFinite(age) || age > conditions.maxAge)) return false;
+
+  if (Array.isArray(conditions.tier) && conditions.tier.length > 0) {
+    const current = tierTitle(user.current_tier);
+    if (!conditions.tier.includes(current)) return false;
+  }
+
+  if (Array.isArray(conditions.dietaryHabit) && conditions.dietaryHabit.length > 0) {
+    const diet = String(user.food_preference || '').trim();
+    if (!diet || !conditions.dietaryHabit.includes(diet)) return false;
+  }
+
+  if (conditions.occupation != null) {
+    if (!occupationMatches(user.occupation, conditions.occupation)) return false;
+  }
+
+  if (conditions.hasExerciseRoutine === true && !user.hasExerciseRoutine) return false;
+  if (conditions.hasExerciseRoutine === false && user.hasExerciseRoutine) return false;
+
+  return true;
+}
+
+function resolveVariant(variants, user) {
+  if (!variants || typeof variants !== 'object') return null;
+
+  const diet = String(user.food_preference || '').trim();
+  if (diet && variants[diet]) return variants[diet];
+
+  const tier = tierTitle(user.current_tier);
+  if (variants[tier]) return variants[tier];
+
+  const age = Number(user.age);
+  if (Number.isFinite(age)) {
+    if (age >= 40 && variants.over_40) return variants.over_40;
+    if (age < 40 && variants.under_40) return variants.under_40;
+  }
+
+  const exerciseType = user.exerciseType || 'general_exercise';
+  if (variants[exerciseType]) return variants[exerciseType];
+
+  if (variants.all) return variants.all;
+
+  const keys = Object.keys(variants);
+  return keys.length ? variants[keys[0]] : null;
+}
+
+function primaryActionStep(variant) {
+  const steps = Array.isArray(variant?.actionSteps) ? variant.actionSteps.filter(Boolean) : [];
+  return steps[0] || '';
+}
+
+function formatJustification(variant) {
+  const steps = Array.isArray(variant?.actionSteps) ? variant.actionSteps.filter(Boolean) : [];
+  const why = variant?.justification || '';
+  if (steps.length <= 1) {
+    return why || steps[0] || '';
+  }
+  const extra = steps.slice(1).join(' ');
+  return extra ? `${why} Also: ${extra}` : why;
+}
+
+function scheduleTime(phaseKey, taskIndex, wake, sleep) {
+  const meta = PHASE_META[phaseKey];
+  if (!meta) return formatTime(wake);
+
+  const anchor = meta.schedule === 'sleep' ? sleep : wake;
+  const minutes = anchor + meta.baseOffset + taskIndex * meta.stagger;
+  return formatTime(minutes);
+}
+
+function buildRuleTask(phaseKey, rule, user) {
+  if (!matchesConditions(rule.conditions, user)) return null;
+
+  const variant = resolveVariant(rule.variants, user);
+  if (!variant) return null;
+
+  const meta = PHASE_META[phaseKey];
+  const action = primaryActionStep(variant);
+
+  return {
+    taskId: rule.ruleId,
+    phaseKey,
+    taskTitle: action || rule.taskTitle,
+    timeWindow: meta?.timeWindow || 'Morning',
+    psychologicalJustification: formatJustification(variant),
+    durationMinutes: rule.durationMinutes || null,
+    actionSteps: variant.actionSteps || [],
+  };
+}
+
+function buildCandidateTasks(rulesMatrix, user) {
+  const candidates = new Map();
+
+  for (const [phaseKey, phaseDef] of Object.entries(rulesMatrix)) {
+    const rules = Array.isArray(phaseDef?.conditionalTasks) ? phaseDef.conditionalTasks : [];
+    for (const rule of rules) {
+      const task = buildRuleTask(phaseKey, rule, user);
+      if (task) candidates.set(task.taskId, task);
+    }
+  }
+
+  return candidates;
+}
+
+function isOptionalBooster(taskId) {
+  return OPTIONAL_BOOSTER_RULES.includes(taskId);
+}
+
+function curateDailyTasks(candidates, wake, sleep, limit = DAILY_TASK_LIMIT) {
+  const selected = [];
+  const selectedIds = new Set();
+
+  const take = (taskId) => {
+    if (selected.length >= limit || selectedIds.has(taskId)) return;
+    const task = candidates.get(taskId);
+    if (!task) return;
+    selectedIds.add(taskId);
+    selected.push(task);
+  };
+
+  // Core cross-phase coverage: 2 morning, up to 2 afternoon, 2 evening (~6 tasks).
+  for (const phaseKey of Object.keys(PHASE_RULE_ORDER)) {
+    const meta = PHASE_META[phaseKey];
+    const order = PHASE_RULE_ORDER[phaseKey];
+    let phaseCount = 0;
+
+    for (const ruleId of order) {
+      if (phaseCount >= meta.maxSlots) break;
+      if (isOptionalBooster(ruleId)) continue;
+      if (!candidates.has(ruleId)) continue;
+      take(ruleId);
+      phaseCount += 1;
+    }
+  }
+
+  // One personalized booster when there is room (exercise flow or warrior psych framing).
+  for (const ruleId of OPTIONAL_BOOSTER_RULES) {
+    if (selected.length >= limit) break;
+    take(ruleId);
+  }
+
+  // Reschedule within each phase after curation.
+  const phaseOrder = Object.keys(PHASE_RULE_ORDER);
+  selected.sort(
+    (a, b) => phaseOrder.indexOf(a.phaseKey) - phaseOrder.indexOf(b.phaseKey)
+      || PHASE_RULE_ORDER[a.phaseKey].indexOf(a.taskId) - PHASE_RULE_ORDER[b.phaseKey].indexOf(b.taskId),
+  );
+
+  const phaseIndexes = {};
+  return selected.map((task) => {
+    const idx = phaseIndexes[task.phaseKey] || 0;
+    phaseIndexes[task.phaseKey] = idx + 1;
+    const { phaseKey, ...rest } = task;
+    return {
+      ...rest,
+      scheduledTimeRelative: scheduleTime(task.phaseKey, idx, wake, sleep),
+    };
+  });
+}
+
+export function inferExerciseRoutineFromAssessment(answers = {}) {
+  const value = answers[17] ?? answers['17'];
+  if (!value) return false;
+  const v = String(value).trim().toLowerCase();
+  return v === 'strongly agree' || v === 'agree';
+}
+
+export function buildElevatePlan(matrix = {}) {
+  const normalizedTier = normalizeTierKey(matrix.current_tier);
+  const tierLabel = tierTitle(matrix.current_tier);
+
+  const tierDurations = rulesMatrixDoc.tierDurations || {};
+  const duration = tierDurations[tierLabel]
+    ?? (normalizedTier === 'SUPERHERO' ? 21 : 7);
+
+  const idx = TIER_ORDER.indexOf(normalizedTier);
+  const nextTier = TIER_ORDER[Math.min(idx + 1, TIER_ORDER.length - 1)];
+
+  const wake = parseTime(matrix.wake_time) ?? 6 * 60 + 30;
+  let sleep = parseTime(matrix.sleep_time) ?? 22 * 60 + 30;
+  if (sleep <= wake) sleep = wake + 15 * 60;
+
+  const user = {
+    ...matrix,
+    current_tier: normalizedTier,
+    hasExerciseRoutine: matrix.hasExerciseRoutine ?? inferExerciseRoutineFromAssessment(matrix.assessmentAnswers),
+    exerciseType: matrix.exerciseType || 'general_exercise',
+  };
+
+  const rulesMatrix = rulesMatrixDoc.rulesMatrix || {};
+  const phaseOrder = ['morningPhase', 'afternoonPhase', 'eveningPhase'];
+  const candidates = buildCandidateTasks(rulesMatrix, user);
+  const dailyTasks = curateDailyTasks(candidates, wake, sleep, DAILY_TASK_LIMIT);
+
+  if (dailyTasks.length === 0) {
+    throw new Error('No matching plan tasks for your profile. Check age, tier, and food preference.');
+  }
+
+  const planTitle = `${duration}-Day Success Identity Transition (${capitalize(normalizedTier)} → ${capitalize(nextTier)})`;
+
+  return {
+    planTitle,
+    macroGoalDurationDays: duration,
+    dailyTasks,
+    meta: {
+      engineVersion: rulesMatrixDoc.engineMeta?.version || '2.0.0',
+      tier: tierLabel,
+      phases: phaseOrder.map((key) => rulesMatrix[key]?.phaseName).filter(Boolean),
+    },
+  };
 }
 
 export default buildElevatePlan;

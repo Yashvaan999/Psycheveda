@@ -34,3 +34,9 @@ cd mobile && npm install --no-audit --legacy-peer-deps --save <pkg>
 - `@react-native-async-storage/async-storage` — Supabase session
 
 Update `architecture.md` when adding libraries that change tracking or auth.
+
+## Assets
+
+- `assets/psychologicaltips.json` — Better You Tips (bundled; no network fetch)
+- `assets/daily-oracle-bg.png` — Better You Tips modal background
+- `assets/brand-logo.png` — header logo

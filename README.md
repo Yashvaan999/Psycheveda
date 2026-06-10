@@ -61,18 +61,20 @@ npm run web
 
 | File | Contents |
 |------|----------|
-| [`architecture.md`](architecture.md) | File map, manual vs Elevate tracking, completion % rules, APIs |
+| [`architecture.md`](architecture.md) | File map, Revive, Better You Tips, Elevate v2, dashboard perf, APIs |
 | [`memory/PRD.md`](memory/PRD.md) | Product requirements and shipped features |
-| [`memory/test_credentials.md`](memory/test_credentials.md) | Test accounts and env vars |
+| [`memory/test_credentials.md`](memory/test_credentials.md) | Test accounts, ports, and test flows |
 | [`design_guidelines.json`](design_guidelines.json) | UI design system |
-| [`.agents/memory/`](.agents/memory/) | Agent runbooks (migrations, Elevate, npm layout) |
+| [`.agents/memory/`](.agents/memory/) | Agent runbooks (Elevate, Better You Tips, Life Coach, migrations, npm) |
 
 ## Key features
 
 - Five **pillars**, goals, and daily **mini-tasks**
+- **Better You Tips** — daily psychological framing popup from `mobile/assets/psychologicaltips.json` (pillar + content; absorb to dismiss)
 - **Manual goals:** progress logs + completion % from logged days
-- **Elevate plans:** generated locally from Gut-Brain assessment; tracked via mini-task checkboxes and sub-task history (no progress logs)
+- **Elevate plans:** generated locally from the Revive **Plan** assessment via `elevateRulesMatrix.json` (6–7 curated daily habits); tracked via mini-task checkboxes and sub-task history (no progress logs)
+- **Consult a Life Coach** — coming-soon placeholder from assessment results (`/life-coach`)
 - **Bless Points** (+5 task, +15 gratitude) and **Veda Streak**
 - NLP **journal** (2/day) and **gratitude** ritual
 - **Completion probability** per goal (Track modal)
-- **HPA Axis** time-adaptive screen
+- **Revive** — circadian wellness screen (time-adaptive palette; internal route `/hpa-axis`)

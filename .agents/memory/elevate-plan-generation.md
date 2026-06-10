@@ -5,13 +5,35 @@ description: How the "Elevate Yourself" plan is generated, stored, and tracked.
 
 # Elevate plan generation & tracking
 
-## Plan generation (local)
+## Plan generation (local, rules matrix v2)
 
-**Elevate Yourself** uses `buildElevatePlan(matrix)` in `mobile/src/lib/elevatePlan.js` — no LLM, no network.
+**Elevate Yourself** uses `buildElevatePlan(matrix)` in `mobile/src/lib/elevatePlan.js` reading **`mobile/src/lib/elevateRulesMatrix.json`** — no LLM, no network.
 
-**Screen:** `mobile/app/gut-brain-plan.js` (after Gut-Brain assessment).
+**Screen:** `mobile/app/gut-brain-plan.js` (after Revive **Plan** / Success Identity assessment).
 
-**Output shape** (must match `createElevateGoal` in `api.js`):
+**Sibling CTA on results:** **Consult a Life Coach** → `/life-coach` (coming soon; not part of plan generation).
+
+### Matrix inputs (`matrix` object)
+
+| Field | Used for |
+|-------|----------|
+| `current_tier` | Duration + tier variants (Survivor / Soldier / Warrior) |
+| `age` | `under_40` / `over_40` hydration variants; age conditions |
+| `food_preference` | Vegetarian / Non-Vegetarian / Vegan midday fueling |
+| `occupation` | Warrior psych-framing task (corporate/entrepreneur fuzzy match) |
+| `wake_time`, `sleep_time` | Relative schedule strings for tasks |
+| `assessmentAnswers` | Q17 → `hasExerciseRoutine` gates evening exercise task |
+| `lowest_parameter` | Passed from UI; reserved for future matrix rules |
+
+### Engine flow
+
+1. **`tierDurations[currentTier]`** → `macroGoalDurationDays` (7 / 14 / 21).
+2. Loop **`morningPhase`**, **`afternoonPhase`**, **`eveningPhase`** conditional tasks.
+3. **`matchesConditions`** — age, tier, diet, occupation, exercise flag.
+4. **`resolveVariant`** — diet → tier → age band → exercise type → `all`.
+5. **`curateDailyTasks`** — cap at **7** tasks (2 morning, 2 afternoon, 2 evening core + 1 optional booster).
+
+### Output shape (must match `createElevateGoal` in `api.js`)
 
 ```ts
 {
@@ -19,7 +41,7 @@ description: How the "Elevate Yourself" plan is generated, stored, and tracked.
   macroGoalDurationDays: number;
   dailyTasks: Array<{
     taskId: string;
-    taskTitle: string;
+    taskTitle: string;           // primary action step text
     timeWindow: 'Morning' | 'Afternoon' | 'Evening';
     scheduledTimeRelative: string;
     psychologicalJustification: string;
@@ -40,7 +62,7 @@ description: How the "Elevate Yourself" plan is generated, stored, and tracked.
 | Completion % | `analyzeElevateSubTasks()` in `completionProbability.js` |
 | History UI | `ElevateSubtaskHistory.js`, `TrackModal.js` |
 
-Users complete work on the **Dashboard** via mini-task checkboxes (`toggleTask`, +5 Bless).
+Users complete work on the **Dashboard** via mini-task checkboxes (`toggleTask`, +5 Bless). Optimistic UI on toggle; `invalidateDashboardCache()` after complete.
 
 ## Completion probability
 

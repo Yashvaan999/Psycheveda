@@ -1,0 +1,168 @@
+{
+  "engineMeta": {
+    "version": "2.0.0",
+    "description": "Conditional rule matrix for generating personalized 21-day, 14-day, and 7-day success identity transition paths.",
+    "supportedPillars": ["Family & Relationship", "Career & Business", "Finance & Money", "Health", "Inner Wellness"]
+  },
+  "tierDurations": {
+    "Survivor": 7,
+    "Soldier": 14,
+    "Warrior": 21
+  },
+  "rulesMatrix": {
+    "morningPhase": {
+      "phaseName": "The Activation Wave",
+      "defaultTimeAnchor": "06:00 - 09:00",
+      "conditionalTasks": [
+        {
+          "ruleId": "m_hydration_base",
+          "conditions": { "minAge": 18, "maxAge": 100 },
+          "taskTitle": "Somatic Hydro-Boost & Vagus Activation",
+          "durationMinutes": 10,
+          "variants": {
+            "under_40": {
+              "actionSteps": ["Drink 500ml of room-temperature mineral water rapidly within 15 minutes of waking."],
+              "justification": "Flushes nighttime cellular waste and rapidly fires up metabolism to clear early morning cognitive resistance."
+            },
+            "over_40": {
+              "actionSteps": ["Drink 500ml of warm water immediately upon waking to gently stimulate the vagus nerve and kickstart digestive motility."],
+              "justification": "Soathes age-related autonomic nervous system sensitivity and reduces early morning cardiovascular strain."
+            }
+          }
+        },
+        {
+          "ruleId": "m_circadian_light",
+          "conditions": { "tier": ["Survivor", "Soldier", "Warrior"] },
+          "taskTitle": "Circadian Photon Lock",
+          "durationMinutes": 15,
+          "variants": {
+            "Survivor": {
+              "actionSteps": ["Sit near a window or step onto a balcony for 10 minutes of effortless daylight contact. Keep eyes open without looking at screens."],
+              "justification": "Suppresses lingering melatonin production with zero physical effort, providing baseline neurological safety."
+            },
+            "Soldier": {
+              "actionSteps": ["Step completely outside and walk slowly for 10 minutes facing the morning horizon."],
+              "justification": "Begins transitioning the body from forced willpower to natural, light-driven biological pacing."
+            },
+            "Warrior": {
+              "actionSteps": ["View direct morning sunlight for 15 minutes while executing light dynamic joint mobility or structural stretching."],
+              "justification": "Maximizes the morning cortisol spike to anchor peak daily focus thresholds for high-performance creative execution."
+            }
+          }
+        },
+        {
+          "ruleId": "m_psych_framing",
+          "conditions": { "tier": ["Warrior"], "occupation": "Entrepreneurial / Corporate" },
+          "taskTitle": "Mindful Deep + Dark Psychology Framing",
+          "durationMinutes": 10,
+          "variants": {
+            "all": {
+              "actionSteps": ["Open the morning psychological card module inside the app.", "Read the daily behavioral strategy and actively map it to your morning schedules or client negotiations."],
+              "justification": "Capitalizes on peak morning neuroplasticity to hardwire strategic interpersonal mastery schemas before external interaction loops begin."
+            }
+          }
+        }
+      ]
+    },
+    "afternoonPhase": {
+      "phaseName": "The Focus & Sustenance Wave",
+      "defaultTimeAnchor": "12:00 - 15:00",
+      "conditionalTasks": [
+        {
+          "ruleId": "a_metabolic_fueling",
+          "conditions": { "dietaryHabit": ["Vegetarian", "Non-Vegetarian", "Vegan"] },
+          "taskTitle": "Mitochondrial Midday Fueling",
+          "durationMinutes": 30,
+          "variants": {
+            "Vegetarian": {
+              "actionSteps": ["Consume a freshly prepared, warm vegetarian meal emphasizing clean bio-available proteins like lentils, sprouted grains, or paneer paired with healthy fats."],
+              "justification": "Protects fragile digestive boundaries, preventing blood-sugar crashes and age/diet-related bloating or executive brain fog."
+            },
+            "Non-Vegetarian": {
+              "actionSteps": ["Consume a high-protein whole-food clean meal (such as eggs, poultry, or fish) paired strictly with leafy greens and zero refined simple carbohydrates."],
+              "justification": "Stabilizes insulin response profiles to completely eliminate the classic post-lunch focus slump during intense software or business sprints."
+            },
+            "Vegan": {
+              "actionSteps": ["Consume a dense plant-based anti-inflammatory meal mixing amino acids (tempeh, hemp seeds, quinoa) with raw nuts and steamed greens."],
+              "justification": "Maintains a constant steady stream of steady glucose to optimize mitochondrial cellular energy production without digestive overload."
+            }
+          }
+        },
+        {
+          "ruleId": "a_stimulant_sunset",
+          "conditions": { "tier": ["Survivor", "Soldier", "Warrior"] },
+          "taskTitle": "Adrenaline Control & Adenosine Buffer",
+          "durationMinutes": 5,
+          "variants": {
+            "Survivor": {
+              "actionSteps": ["Completely eliminate all caffeine and stimulant beverages past 12:00 PM noon."],
+              "justification": "Protects an already exhausted central nervous system from crashing into artificial fight-or-flight loops."
+            },
+            "Soldier": {
+              "actionSteps": ["Enforce a hard chemical cutoff for coffee or energy drinks strictly at 14:00."],
+              "justification": "Prevents artificial stimulation from masking deep exhaustion, allowing the body's natural adenosine levels to build up cleanly for sleep."
+            },
+            "Warrior": {
+              "actionSteps": ["Enforce a 14:00 caffeine cutoff and swap afternoon coffee for a 5-minute deep box-breathing reset loop at your workstation."],
+              "justification": "Substitutes reliance on chemical adrenaline with conscious nervous system regulation to preserve focus endurance."
+            }
+          }
+        }
+      ]
+    },
+    "eveningPhase": {
+      "phaseName": "The Reflection & Deep Recovery Wave",
+      "defaultTimeAnchor": "18:00 - 23:00",
+      "conditionalTasks": [
+        {
+          "ruleId": "e_somatic_output",
+          "conditions": { "hasExerciseRoutine": true },
+          "taskTitle": "Somatic Clearance Flow",
+          "durationMinutes": 45,
+          "variants": {
+            "swimming": {
+              "actionSteps": ["Execute your scheduled 45-minute continuous swimming block.", "Focus on rhythmic, elongated under-water breath expansion pacing."],
+              "justification": "Utilizes water resistance and deep hydrostatic pressure to flush built-up daytime mental cortisol while acting as Non-Sleep Deep Rest (NSDR)."
+            },
+            "general_exercise": {
+              "actionSteps": ["Complete your chosen physical training loop.", "Follow with 5 minutes of legs-up-the-wall positioning to drain pooled physical blood lactic metrics."],
+              "justification": "Signals the motor cortex to initiate muscular and central nervous system repair pathways."
+            }
+          }
+        },
+        {
+          "ruleId": "e_nlp_reframing",
+          "conditions": { "tier": ["Survivor", "Soldier", "Warrior"] },
+          "taskTitle": "Cognitive Disengagement Log",
+          "durationMinutes": 15,
+          "variants": {
+            "Survivor": {
+              "actionSteps": ["Open the app and complete step 1 and 2 only: Type out today's baseline situation and tap the primary emotion tag."],
+              "justification": "Lowers psychological friction to zero, building behavioral consistency without demanding complex semantic processing."
+            },
+            "Soldier": {
+              "actionSteps": ["Complete a partial journaling entry: Log the Situation, Emotion, and explicitly select either the 'Cause & Effect' or 'Result & Excuse' NLP frame."],
+              "justification": "Begins breaking down unconscious justification mechanisms by forcing structural cognitive accountability."
+            },
+            "Warrior": {
+              "actionSteps": ["Execute the complete 5-step NLP pipeline: Situation -> Emotion -> Selected NLP Frame -> Ease of Transition Slider -> End Feeling.", "Log 3 clear blessings into the Bless Box to claim premium rewards points."],
+              "justification": "Rewrites subconscious reactive schemas by transitioning active stress points out of emotional centers into structural resolution loops."
+            }
+          }
+        },
+        {
+          "ruleId": "e_digital_sunset",
+          "conditions": { "minAge": 18 },
+          "taskTitle": "Melatonin Onset Protocol",
+          "durationMinutes": 30,
+          "variants": {
+            "all": {
+              "actionSteps": ["Dim all household environmental lights and toggle app screens to warm lighting exactly 2 hours before your target sleep window.", "Execute your non-negotiable meditation or breathwork block precisely at 22:30."],
+              "justification": "Triggers rapid pineal gland melatonin synthesis while shifting the vagal tone completely into parasympathetic dominance for deep restorative sleep."
+            }
+          }
+        }
+      ]
+    }
+  }
+}
