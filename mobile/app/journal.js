@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BookOpen, History, Sun, Moon, Lightbulb } from 'lucide-react-native';
+import { BookOpen, History, Lightbulb } from 'lucide-react-native';
 import api from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import Modal from '../src/components/Modal';
@@ -31,6 +31,16 @@ const SUGGESTIONS = {
       'sadness, disappointment',
     ],
   },
+  initialFrame: {
+    theme: 'Initial frame (natural)',
+    intro: 'The lens through which you first saw it.',
+    ideas: [],
+  },
+  chosenFrame: {
+    theme: 'Chosen frame (later)',
+    intro: 'Choose a more empowering frame.',
+    ideas: [],
+  },
 };
 
 export default function Journal() {
@@ -42,7 +52,6 @@ export default function Journal() {
   const [nlpFrame, setNlpFrame] = useState('');
   const [ease, setEase] = useState(3);
   const [endFeeling, setEndFeeling] = useState('');
-  const [period, setPeriod] = useState(new Date().getHours() < 12 ? 'morning' : 'evening');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -65,7 +74,8 @@ export default function Journal() {
         entry_date: new Date().toISOString().slice(0, 10),
         situation, natural_emotion: emotion,
         initial_frame: initialFrame, nlp_frame: nlpFrame,
-        ease_of_transition: ease, end_feeling: endFeeling, period,
+        ease_of_transition: ease, end_feeling: endFeeling,
+        period: new Date().getHours() < 12 ? 'morning' : 'evening',
       });
       setDone(true);
     } catch (e) {
@@ -103,7 +113,7 @@ export default function Journal() {
       <View style={styles.head}>
         <View style={{ flex: 1 }}>
           <Text style={styles.h1}>Journal</Text>
-          <Text style={styles.sub}>CBT + NLP reframing — name it to tame it.</Text>
+          <Text style={styles.sub}>Mindfully Reprogram yourself for different situations</Text>
         </View>
         <Pressable onPress={() => router.push('/journal-history')} style={styles.histBtn}>
           <History size={16} strokeWidth={1.5} color={colors.subtext} />
@@ -111,46 +121,17 @@ export default function Journal() {
       </View>
 
       <Card style={{ gap: 16, marginTop: 16 }}>
-        {/* Period */}
-        <View>
-          <Label>Period</Label>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {[
-              { k: 'morning', label: 'Morning', Icon: Sun },
-              { k: 'evening', label: 'Evening', Icon: Moon },
-            ].map(({ k, label, Icon }) => {
-              const active = period === k;
-              return (
-                <Pressable
-                  key={k}
-                  onPress={() => setPeriod(k)}
-                  style={[
-                    styles.periodChip,
-                    active && { backgroundColor: colors.primary, borderColor: colors.primary },
-                  ]}
-                >
-                  <Icon size={14} strokeWidth={1.5} color={active ? colors.white : colors.subtext} />
-                  <Text style={[
-                    { color: colors.text, fontSize: 13, fontFamily: fonts.bodyMedium },
-                    active && { color: colors.white },
-                  ]}>{label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
         {/* Situation */}
         <View>
           <View style={styles.labelRow}>
-            <Label style={{ marginBottom: 0 }}>1 · The situation</Label>
+            <Label style={{ marginBottom: 0 }}>1. The situation</Label>
             <Pressable onPress={() => setTip('situation')} hitSlop={8} style={styles.tipBtn}>
               <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
             </Pressable>
           </View>
           <Textarea
             value={situation} onChangeText={setSituation}
-            placeholder="Describe the situation as a neutral observer."
+            placeholder="Describe your situation from a true lens."
             style={{ minHeight: 90, marginTop: 6 }}
           />
         </View>
@@ -158,7 +139,7 @@ export default function Journal() {
         {/* Natural emotion */}
         <View>
           <View style={styles.labelRow}>
-            <Label style={{ marginBottom: 0 }}>2 · Natural emotion</Label>
+            <Label style={{ marginBottom: 0 }}>2. Natural emotion</Label>
             <Pressable onPress={() => setTip('emotion')} hitSlop={8} style={styles.tipBtn}>
               <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
             </Pressable>
@@ -172,8 +153,12 @@ export default function Journal() {
 
         {/* Initial frame */}
         <View>
-          <Label>3 · Initial frame</Label>
-          <Text style={styles.helper}>The lens through which you first saw it.</Text>
+          <View style={styles.labelRow}>
+            <Label style={{ marginBottom: 0 }}>3. Initial frame (natural)</Label>
+            <Pressable onPress={() => setTip('initialFrame')} hitSlop={8} style={styles.tipBtn}>
+              <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
+            </Pressable>
+          </View>
           <View style={{ gap: 6, marginTop: 8 }}>
             {frames.map((f) => {
               const active = initialFrame === f.key;
@@ -192,10 +177,14 @@ export default function Journal() {
           </View>
         </View>
 
-        {/* NLP frame (reframed) */}
+        {/* Chosen frame */}
         <View>
-          <Label>4 · Reframed lens (NLP)</Label>
-          <Text style={styles.helper}>Choose a more empowering frame.</Text>
+          <View style={styles.labelRow}>
+            <Label style={{ marginBottom: 0 }}>4. Chosen frame (later)</Label>
+            <Pressable onPress={() => setTip('chosenFrame')} hitSlop={8} style={styles.tipBtn}>
+              <Lightbulb size={14} strokeWidth={1.5} color={colors.primary} />
+            </Pressable>
+          </View>
           <View style={{ gap: 6, marginTop: 8 }}>
             {frames.map((f) => {
               const active = nlpFrame === f.key;
@@ -216,7 +205,13 @@ export default function Journal() {
 
         {/* Ease */}
         <View>
-          <Label>5 · Ease of transition · {ease}/5</Label>
+          <View style={styles.labelRow}>
+            <Text style={styles.easeLabel}>
+              5. Ease of frame transition ·{' '}
+              <Text style={styles.easeNumerator}>{ease}</Text>
+              <Text style={styles.easeDenominator}>/5</Text>
+            </Text>
+          </View>
           <View style={{ flexDirection: 'row', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
             {Array.from({ length: EASE_MAX - EASE_MIN + 1 }, (_, i) => i + EASE_MIN).map((n) => {
               const active = ease >= n;
@@ -241,7 +236,7 @@ export default function Journal() {
 
         {/* End feeling */}
         <View>
-          <Label>6 · End feeling</Label>
+          <Label>6. End feeling</Label>
           <Input
             value={endFeeling} onChangeText={setEndFeeling}
             placeholder="How do you feel now?"
@@ -253,7 +248,7 @@ export default function Journal() {
         ) : null}
 
         <Button onPress={save} disabled={busy || !valid}>
-          {busy ? 'Saving…' : 'Save entry'}
+          {busy ? 'Saving…' : 'Save'}
         </Button>
       </Card>
 
@@ -265,14 +260,16 @@ export default function Journal() {
         {tip ? (
           <View style={{ gap: 12 }}>
             <Text style={styles.tipIntro}>{SUGGESTIONS[tip].intro}</Text>
-            <View style={{ gap: 10 }}>
-              {SUGGESTIONS[tip].ideas.map((idea, i) => (
-                <View key={i} style={styles.ideaRow}>
-                  <View style={styles.dot} />
-                  <Text style={styles.ideaText}>{idea}</Text>
-                </View>
-              ))}
-            </View>
+            {SUGGESTIONS[tip].ideas.length > 0 ? (
+              <View style={{ gap: 10 }}>
+                {SUGGESTIONS[tip].ideas.map((idea, i) => (
+                  <View key={i} style={styles.ideaRow}>
+                    <View style={styles.dot} />
+                    <Text style={styles.ideaText}>{idea}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </View>
         ) : null}
       </Modal>
@@ -289,18 +286,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
     alignItems: 'center', justifyContent: 'center', marginTop: 4,
   },
-  helper: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body, lineHeight: 18, marginTop: -4 },
   frame: {
     backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border,
     padding: 12, borderRadius: radius.lg, gap: 4,
   },
   frameTitle: { color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 13 },
   frameDesc: { color: colors.subtext, fontSize: 12, fontFamily: fonts.body, lineHeight: 18 },
-  periodChip: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 12, borderWidth: 1, borderColor: colors.border,
-    borderRadius: radius.xl, backgroundColor: colors.card,
-  },
+  easeLabel: { color: colors.text, fontSize: 13, fontFamily: fonts.bodyMedium },
+  easeNumerator: { color: colors.primary, fontFamily: fonts.bodyMedium },
+  easeDenominator: { color: colors.subtext, fontFamily: fonts.bodyMedium },
   easeDot: {
     width: 28, height: 28, borderRadius: 14,
     borderWidth: 1, borderColor: colors.border,

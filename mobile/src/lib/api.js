@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 import { buildElevatePlan } from './elevatePlan';
 import { analyzeElevateSubTasks, analyzeManualDays } from './completionProbability';
+import {
+  effectiveVedaStreak,
+  nextVedaStreakOnActivity,
+  resolveVedaStreak,
+} from './vedaStreak';
+import { todayIso } from './utils';
 
 const PILLAR_LABELS = {
   family_relationship: 'Family & Relationship',
@@ -15,6 +21,25 @@ let dashboardCache = { at: 0, data: null };
 
 export function invalidateDashboardCache() {
   dashboardCache = { at: 0, data: null };
+}
+
+async function applyBlessStreakUpdate(userId) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('veda_streak, last_activity_date')
+    .eq('id', userId)
+    .single();
+  if (!profile) return;
+  const today = todayIso();
+  const next = nextVedaStreakOnActivity(profile.veda_streak, profile.last_activity_date, today);
+  await supabase.from('profiles')
+    .update({ veda_streak: next, last_activity_date: today })
+    .eq('id', userId);
+}
+
+function streakFromProfile(profile) {
+  if (!profile) return 0;
+  return effectiveVedaStreak(profile.veda_streak, profile.last_activity_date);
 }
 
 export const api = {
@@ -48,7 +73,12 @@ export const api = {
       .select('full_name, onboarding_complete, bless_points_balance, veda_streak, last_activity_date, selected_pillars')
       .eq('id', userId)
       .single();
-    return data || {};
+    if (!data) return {};
+    const { effective, shouldResetStored } = resolveVedaStreak(data.veda_streak, data.last_activity_date);
+    if (shouldResetStored) {
+      await supabase.from('profiles').update({ veda_streak: 0 }).eq('id', userId);
+    }
+    return { ...data, veda_streak: effective };
   },
 
   listPillars: async () => [
@@ -198,7 +228,7 @@ export const api = {
         .from('mini_tasks')
         .select('id, title, completed, source, time_window, scheduled_time')
         .eq('scheduled_for', today),
-      supabase.from('profiles').select('bless_points_balance, veda_streak').eq('id', user.id).single(),
+      supabase.from('profiles').select('bless_points_balance, veda_streak, last_activity_date').eq('id', user.id).single(),
       supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
       supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
     ]);
@@ -222,7 +252,7 @@ export const api = {
       tasks: tasksRes.data || [],
       stats: {
         bless_points_balance: profileRes.data?.bless_points_balance || 0,
-        veda_streak: profileRes.data?.veda_streak || 0,
+        veda_streak: streakFromProfile(profileRes.data),
         journal_entries_today: journalRes.data?.length || 0,
         gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
       },
@@ -378,14 +408,8 @@ export const api = {
         .eq('completed', false);
     } catch { /* best-effort */ }
     try {
-      const { data: profile } = await supabase
-        .from('profiles').select('veda_streak').eq('id', user.id).single();
-      await supabase.from('profiles')
-        .update({
-          veda_streak: (profile?.veda_streak || 0) + 1,
-          last_activity_date: new Date().toISOString().slice(0, 10),
-        })
-        .eq('id', user.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      await applyBlessStreakUpdate(user.id);
     } catch { /* best-effort */ }
     return data;
   },
@@ -477,6 +501,7 @@ export const api = {
           .update({ bless_points_balance: (profile.bless_points_balance || 0) + 5 })
           .eq('id', user.id);
       }
+      await applyBlessStreakUpdate(user.id);
     } catch { /* best-effort */ }
     return data;
   },
@@ -509,9 +534,16 @@ export const api = {
     return journal;
   },
 
-  listJournal: async () => {
-    const { data, error } = await supabase
-      .from('journal_entries').select('*').order('created_at', { ascending: false });
+  listJournal: async (opts = {}) => {
+    const { limit, from, to } = opts;
+    let query = supabase
+      .from('journal_entries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (from) query = query.gte('entry_date', from);
+    if (to) query = query.lte('entry_date', to);
+    if (limit) query = query.limit(limit);
+    const { data, error } = await query;
     if (error) throw error;
     const grouped = {};
     for (const entry of (data || [])) {
@@ -547,13 +579,21 @@ export const api = {
           .update({ bless_points_balance: (profile.bless_points_balance || 0) + 15 })
           .eq('id', user.id);
       }
+      await applyBlessStreakUpdate(user.id);
     } catch { /* best-effort */ }
     return gratitude;
   },
 
-  listGratitude: async () => {
-    const { data, error } = await supabase
-      .from('gratitude_entries').select('*').order('created_at', { ascending: false });
+  listGratitude: async (opts = {}) => {
+    const { limit, from, to } = opts;
+    let query = supabase
+      .from('gratitude_entries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (from) query = query.gte('entry_date', from);
+    if (to) query = query.lte('entry_date', to);
+    if (limit) query = query.limit(limit);
+    const { data, error } = await query;
     if (error) throw error;
     const grouped = {};
     for (const entry of (data || [])) {
@@ -571,13 +611,13 @@ export const api = {
     if (!user) return { bless_points_balance: 0, veda_streak: 0, journal_entries_today: 0, gratitude_logged_today: false };
     const today = new Date().toISOString().slice(0, 10);
     const [profileRes, journalRes, gratitudeRes] = await Promise.all([
-      supabase.from('profiles').select('bless_points_balance, veda_streak').eq('id', user.id).single(),
+      supabase.from('profiles').select('bless_points_balance, veda_streak, last_activity_date').eq('id', user.id).single(),
       supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
       supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
     ]);
     return {
       bless_points_balance: profileRes.data?.bless_points_balance || 0,
-      veda_streak: profileRes.data?.veda_streak || 0,
+      veda_streak: streakFromProfile(profileRes.data),
       journal_entries_today: journalRes.data?.length || 0,
       gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
     };

@@ -44,10 +44,6 @@ export default function LifeCoach() {
             </View>
           </View>
 
-          <Text style={styles.note}>
-            We are crafting a premium coaching experience. You will be the first to know when it opens.
-          </Text>
-
           <Button variant="secondary" onPress={() => router.back()} style={{ alignSelf: 'stretch', marginTop: 8 }}>
             Return to my results
           </Button>
@@ -96,6 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: withAlpha(colors.primary, 0.12),
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
     marginBottom: 20,
   },
   eyebrow: {
@@ -105,6 +102,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.primary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   title: {
     fontFamily: fonts.displayBold,
@@ -112,18 +110,21 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 34,
     marginBottom: 12,
+    textAlign: 'center',
   },
   desc: {
     fontFamily: fonts.body,
     fontSize: 15,
     color: colors.text,
     lineHeight: 24,
+    textAlign: 'center',
   },
   pillRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 20,
+    justifyContent: 'center',
   },
   pill: {
     paddingHorizontal: 12,
@@ -136,13 +137,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.secondary,
     letterSpacing: 0.3,
-  },
-  note: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.subtext,
-    lineHeight: 20,
-    marginTop: 20,
-    fontStyle: 'italic',
   },
 });

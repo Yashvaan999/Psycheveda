@@ -207,7 +207,7 @@ export default function AppShell({ children }) {
           </View>
         ) : null}
         <Text style={[styles.modalBody, { fontStyle: 'italic', fontSize: 12, marginTop: 20 }]}>
-          Skip a day and the count resets to one — gentle as the tide.
+          Skip a day and the count resets to zero.
         </Text>
       </Modal>
 
