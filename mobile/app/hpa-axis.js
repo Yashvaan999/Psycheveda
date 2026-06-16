@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +20,10 @@ export default function HpaAxis() {
   }, []);
 
   const p = hpaPalettes[phase];
+
+  const openPlan = useCallback(() => {
+    router.push('/reset-subscribe');
+  }, [router]);
 
   return (
     <View style={{ flex: 1, backgroundColor: p.bg }}>
@@ -88,7 +92,7 @@ export default function HpaAxis() {
 
         <View style={[styles.card, { backgroundColor: p.card, borderColor: withAlpha(p.primary, 0.20), marginTop: 24 }]}>
           <Pressable
-            onPress={() => router.push('/gut-brain-plan')}
+            onPress={openPlan}
             style={({ pressed }) => [
               styles.planBtn,
               { backgroundColor: p.primary },

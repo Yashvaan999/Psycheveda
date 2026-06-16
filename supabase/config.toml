@@ -1,0 +1,20 @@
+# Minimal Supabase CLI config for Edge Functions.
+# Link your project: supabase link --project-ref YOUR_PROJECT_REF
+
+[api]
+enabled = true
+
+[functions.create-order]
+verify_jwt = true
+
+[functions.verify-payment]
+verify_jwt = true
+
+[functions.create-reset-checkout]
+verify_jwt = true
+
+[functions.confirm-reset-razorpay]
+verify_jwt = true
+
+[functions.razorpay-webhook]
+verify_jwt = false

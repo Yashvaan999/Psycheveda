@@ -16,6 +16,7 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { AuthProvider } from '../src/lib/auth';
+import RevenueCatSync from '../src/components/RevenueCatSync';
 import { colors } from '../src/lib/theme';
 
 export default function RootLayout() {
@@ -39,6 +40,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
+        <RevenueCatSync />
         <StatusBar style="dark" />
         <Stack
           screenOptions={{

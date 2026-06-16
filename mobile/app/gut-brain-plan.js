@@ -109,16 +109,26 @@ export default function GutBrainPlanScreen() {
 
   useEffect(() => {
     let active = true;
-    api.getGutBrainAssessment()
-      .then((row) => {
+    (async () => {
+      try {
+        const ent = await api.getResetEntitlement();
+        if (!active) return;
+        if (!ent.entitled) {
+          router.replace('/reset-subscribe');
+          return;
+        }
+        const row = await api.getGutBrainAssessment();
         if (!active) return;
         if (row?.answers) setAnswers(row.answers);
         if (row?.completed) setDone(true);
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setLoading(false); });
+      } catch {
+        if (active) router.replace('/reset-subscribe');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
     return () => { active = false; };
-  }, []);
+  }, [router]);
 
   const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {

@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
 import api from './api';
+import { logoutRevenueCat } from './revenueCat';
 
 const AuthContext = createContext(null);
 
 async function buildUser(authUser) {
   if (!authUser) return null;
-  const profile = await api.fetchProfile(authUser.id);
+  const [profile, resetEnt] = await Promise.all([
+    api.fetchProfile(authUser.id),
+    api.getResetEntitlement(),
+  ]);
   return {
     ...authUser,
     full_name: profile.full_name || authUser.user_metadata?.full_name || '',
@@ -15,6 +19,9 @@ async function buildUser(authUser) {
     veda_streak: profile.veda_streak ?? 0,
     last_activity_date: profile.last_activity_date || null,
     selected_pillars: profile.selected_pillars || [],
+    reset_entitled: resetEnt.entitled,
+    reset_days_remaining: resetEnt.days_remaining || 0,
+    reset_period_end: resetEnt.current_period_end || null,
   };
 }
 
@@ -68,6 +75,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    await logoutRevenueCat();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setUser(null);

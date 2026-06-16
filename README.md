@@ -43,6 +43,44 @@ Open **http://localhost:5001**
 | Script | `npm run web` = `expo start --web --port 5001` |
 | Interactive | `npm start` opens Expo dev tools (scan QR / pick web) |
 
+### 4. Web payments (Razorpay — test mode, no Play Store needed)
+
+1. Run migration `database/supabase_migration_v6_3.sql` in Supabase SQL editor (after v6 / v6.2).
+2. [Razorpay Dashboard](https://dashboard.razorpay.com) → **Test mode** → create two **Subscription plans**:
+   - Monthly **₹150** → copy `plan_id`
+   - Yearly **₹1500** → copy `plan_id`
+3. Deploy Edge Functions (one-time). **Do not use `npm install -g`** (often permission denied on Mac). Use **`npx`** or Homebrew instead:
+
+```bash
+# Option A — npx (no global install)
+cd /path/to/Psycheveda
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase secrets set \
+  RAZORPAY_KEY_ID=rzp_test_xxx RAZORPAY_KEY_SECRET=xxx \
+  RAZORPAY_PLAN_MONTHLY=plan_xxx RAZORPAY_PLAN_YEARLY=plan_xxx \
+  RAZORPAY_WEBHOOK_SECRET=whsec_xxx
+npx supabase functions deploy create-reset-checkout confirm-reset-razorpay razorpay-webhook
+
+# Option B — Homebrew (one-time install)
+# brew install supabase/tap/supabase
+# then use `supabase` instead of `npx supabase`
+```
+
+4. Razorpay → **Webhooks** → URL  
+   `https://YOUR_PROJECT_REF.supabase.co/functions/v1/razorpay-webhook`  
+   Events: `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.halted`
+5. Add to `mobile/.env`:
+
+```env
+EXPO_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxx
+```
+
+6. Restart `npm run web` → Revive → **Plan** → paywall → **Pay**  
+   Test card: `4111 1111 1111 1111`, any future expiry, any CVV.
+
+Coupons still work on web without Razorpay. Mobile IAP (RevenueCat) is optional until App Store / Play setup.
+
 ### Restart dev server
 
 ```bash

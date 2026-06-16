@@ -134,6 +134,22 @@ export default function Dashboard() {
       </Text>
       <Text style={styles.sub}>Nurture your mind and soul</Text>
 
+      {!loading && stats.reset_entitled && stats.reset_days_remaining > 0 && stats.reset_days_remaining <= 7 ? (
+        <Pressable onPress={() => router.push('/reset-subscribe')} style={styles.resetBanner}>
+          <Text style={styles.resetBannerText}>
+            Your Reset plan ends in {stats.reset_days_remaining} day{stats.reset_days_remaining === 1 ? '' : 's'} — renew to keep access and save 5%
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {!loading && !stats.reset_entitled && stats.reset_period_end ? (
+        <Pressable onPress={() => router.push('/reset-subscribe')} style={styles.resetBannerLapsed}>
+          <Text style={styles.resetBannerText}>
+            Your Reset plan has ended — renew to restore your plan and Elevate tasks
+          </Text>
+        </Pressable>
+      ) : null}
+
       <DailyOracleModal
         open={oracleOpen}
         tip={oracleTip}
@@ -292,6 +308,30 @@ const styles = StyleSheet.create({
   greet: { fontFamily: fonts.display, fontSize: 28, color: colors.text },
   greetBelowTips: { marginTop: 18 },
   sub: { color: colors.subtext, fontSize: 14, marginTop: 4, fontFamily: fonts.body },
+  resetBanner: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radius.xl,
+    backgroundColor: withAlpha(colors.primary, 0.10),
+    borderWidth: 1,
+    borderColor: withAlpha(colors.primary, 0.25),
+  },
+  resetBannerLapsed: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radius.xl,
+    backgroundColor: withAlpha(colors.amber, 0.12),
+    borderWidth: 1,
+    borderColor: withAlpha(colors.amber, 0.30),
+  },
+  resetBannerText: {
+    color: colors.text,
+    fontSize: 13,
+    fontFamily: fonts.bodyMedium,
+    lineHeight: 20,
+  },
   section: { marginTop: 28 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 20, color: colors.text },

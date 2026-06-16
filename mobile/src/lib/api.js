@@ -6,6 +6,10 @@ import {
   nextVedaStreakOnActivity,
   resolveVedaStreak,
 } from './vedaStreak';
+import {
+  filterElevateContent,
+  parseEntitlement,
+} from './resetSubscription';
 import { todayIso } from './utils';
 
 const PILLAR_LABELS = {
@@ -21,6 +25,24 @@ let dashboardCache = { at: 0, data: null };
 
 export function invalidateDashboardCache() {
   dashboardCache = { at: 0, data: null };
+}
+
+/** Read `{ error }` from Edge Function non-2xx responses (Supabase hides it in `error.context`). */
+async function invokeEdgeFunction(name, body) {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (data?.error) throw new Error(data.error);
+  if (error) {
+    let msg = error.message;
+    try {
+      const res = error.context;
+      if (res?.json) {
+        const parsed = await res.json();
+        if (parsed?.error) msg = parsed.error;
+      }
+    } catch { /* use default msg */ }
+    throw new Error(msg || `Could not call ${name}`);
+  }
+  return data;
 }
 
 async function applyBlessStreakUpdate(userId) {
@@ -219,7 +241,7 @@ export const api = {
     }
 
     const today = new Date().toISOString().slice(0, 10);
-    const [goalsRes, tasksRes, profileRes, journalRes, gratitudeRes] = await Promise.all([
+    const [goalsRes, tasksRes, profileRes, journalRes, gratitudeRes, resetEnt] = await Promise.all([
       supabase
         .from('goals')
         .select('id, title, pillar, source, estimate_unit, estimate_value, created_at, deadline_at')
@@ -231,13 +253,16 @@ export const api = {
       supabase.from('profiles').select('bless_points_balance, veda_streak, last_activity_date').eq('id', user.id).single(),
       supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
       supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+      api.getResetEntitlement(),
     ]);
 
     if (goalsRes.error) throw goalsRes.error;
     if (tasksRes.error) throw tasksRes.error;
 
+    const entitled = resetEnt.entitled;
+
     const payload = {
-      goals: (goalsRes.data || []).map((g) => {
+      goals: filterElevateContent((goalsRes.data || []).map((g) => {
         const totalDays = g.estimate_unit === 'days'
           ? g.estimate_value
           : Math.ceil(g.estimate_value / 24);
@@ -248,13 +273,16 @@ export const api = {
           progress_log_count: 0,
           total_days: totalDays,
         };
-      }),
-      tasks: tasksRes.data || [],
+      }), entitled),
+      tasks: filterElevateContent(tasksRes.data || [], entitled),
       stats: {
         bless_points_balance: profileRes.data?.bless_points_balance || 0,
         veda_streak: streakFromProfile(profileRes.data),
         journal_entries_today: journalRes.data?.length || 0,
         gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
+        reset_entitled: entitled,
+        reset_days_remaining: resetEnt.days_remaining || 0,
+        reset_period_end: resetEnt.current_period_end || null,
       },
     };
 
@@ -475,12 +503,15 @@ export const api = {
 
   tasksToday: async () => {
     const today = new Date().toISOString().slice(0, 10);
-    const { data, error } = await supabase
-      .from('mini_tasks')
-      .select('id, title, completed, source, time_window, scheduled_time')
-      .eq('scheduled_for', today);
-    if (error) throw error;
-    return data || [];
+    const [tasksRes, resetEnt] = await Promise.all([
+      supabase
+        .from('mini_tasks')
+        .select('id, title, completed, source, time_window, scheduled_time')
+        .eq('scheduled_for', today),
+      api.getResetEntitlement(),
+    ]);
+    if (tasksRes.error) throw tasksRes.error;
+    return filterElevateContent(tasksRes.data || [], resetEnt.entitled);
   },
 
   toggleTask: async (id) => {
@@ -610,17 +641,109 @@ export const api = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { bless_points_balance: 0, veda_streak: 0, journal_entries_today: 0, gratitude_logged_today: false };
     const today = new Date().toISOString().slice(0, 10);
-    const [profileRes, journalRes, gratitudeRes] = await Promise.all([
+    const [profileRes, journalRes, gratitudeRes, resetEnt] = await Promise.all([
       supabase.from('profiles').select('bless_points_balance, veda_streak, last_activity_date').eq('id', user.id).single(),
       supabase.from('journal_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
       supabase.from('gratitude_entries').select('id').eq('user_id', user.id).eq('entry_date', today),
+      api.getResetEntitlement(),
     ]);
     return {
       bless_points_balance: profileRes.data?.bless_points_balance || 0,
       veda_streak: streakFromProfile(profileRes.data),
       journal_entries_today: journalRes.data?.length || 0,
       gratitude_logged_today: (gratitudeRes.data?.length || 0) > 0,
+      reset_entitled: resetEnt.entitled,
+      reset_days_remaining: resetEnt.days_remaining || 0,
+      reset_period_end: resetEnt.current_period_end || null,
     };
+  },
+
+  getResetEntitlement: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return parseEntitlement(null);
+    try {
+      const { data, error } = await supabase.rpc('get_reset_entitlement');
+      if (error) throw error;
+      return parseEntitlement(data);
+    } catch (e) {
+      console.warn('get_reset_entitlement', e);
+      return parseEntitlement(null);
+    }
+  },
+
+  redeemResetCoupon: async (code) => {
+    const trimmed = (code || '').trim();
+    if (!trimmed) throw new Error('Enter a coupon code.');
+    const { data, error } = await supabase.rpc('redeem_reset_coupon', { p_code: trimmed });
+    if (error) throw new Error(error.message || 'Could not redeem coupon.');
+    invalidateDashboardCache();
+    return parseEntitlement(data);
+  },
+
+  expireResetSubscriptionForTesting: async () => {
+    const { data, error } = await supabase.rpc('expire_reset_subscription_for_testing');
+    if (error) throw new Error(error.message || 'Could not reset subscription.');
+    invalidateDashboardCache();
+    return data;
+  },
+
+  syncResetRevenueCatSubscription: async ({ plan, periodEnd, providerRef }) => {
+    if (!periodEnd) throw new Error('Missing subscription period.');
+    const { data, error } = await supabase.rpc('sync_reset_revenuecat_subscription', {
+      p_plan: plan,
+      p_period_end: periodEnd,
+      p_provider_ref: providerRef || 'revenuecat',
+    });
+    if (error) throw new Error(error.message || 'Could not sync subscription.');
+    invalidateDashboardCache();
+    return parseEntitlement(data);
+  },
+
+  createRazorpayOrder: async (plan, couponCode) => {
+    const body = { plan };
+    if (couponCode?.trim()) body.coupon_code = couponCode.trim();
+    return invokeEdgeFunction('create-order', body);
+  },
+
+  verifyRazorpayPayment: async (payload) => {
+    const data = await invokeEdgeFunction('verify-payment', payload);
+    invalidateDashboardCache();
+    return data;
+  },
+
+  /** @deprecated Subscription checkout — use createRazorpayOrder for Standard Checkout */
+  createResetRazorpayCheckout: async (plan, couponCode) => {
+    const body = { plan };
+    if (couponCode?.trim()) body.coupon_code = couponCode.trim();
+    return invokeEdgeFunction('create-reset-checkout', body);
+  },
+
+  validateResetCheckoutCoupon: async (code, plan) => {
+    const trimmed = (code || '').trim();
+    if (!trimmed) throw new Error('Enter a coupon code.');
+    const { data, error } = await supabase.rpc('validate_reset_checkout_coupon', {
+      p_code: trimmed,
+      p_plan: plan,
+    });
+    if (error) throw new Error(error.message || 'Could not validate coupon.');
+    return data;
+  },
+
+  confirmResetRazorpayCheckout: async (subscriptionId) => {
+    const data = await invokeEdgeFunction('confirm-reset-razorpay', {
+      subscription_id: subscriptionId,
+    });
+    invalidateDashboardCache();
+    return parseEntitlement(data.entitlement);
+  },
+
+  pollResetEntitlement: async (maxAttempts = 15, intervalMs = 2000) => {
+    for (let i = 0; i < maxAttempts; i += 1) {
+      const ent = await api.getResetEntitlement();
+      if (ent.entitled) return ent;
+      await new Promise((r) => { setTimeout(r, intervalMs); });
+    }
+    return api.getResetEntitlement();
   },
 
   getGutBrainAssessment: async () => {
@@ -701,6 +824,10 @@ export const api = {
   // Turns a GeneratedPlan into a trackable goal (source 'elevate') with one
   // mini_task per dailyTask per day across the macro-habit duration.
   createElevateGoal: async (plan) => {
+    const resetEnt = await api.getResetEntitlement();
+    if (!resetEnt.entitled) {
+      throw new Error('An active Reset Plan subscription is required to create your elevation plan.');
+    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not signed in');
     const duration = Math.max(1, Math.min(31, Number(plan.macroGoalDurationDays) || 7));
