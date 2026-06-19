@@ -3,7 +3,7 @@
 > Condensed root-level summary for LLM context. Pair with `design_guidelines.json`
 > for UI tokens. **Primary shipped client:** `mobile/` (Expo + Supabase).
 
-_Last updated: 2026-06-04 (Revive, Better You Tips, Elevate v2, Life Coach placeholder, dashboard perf)_
+_Last updated: 2026-06-16 (Reset Plan, Razorpay Standard Checkout, Vercel deploy, favicon)_
 
 ## High-level
 
@@ -11,8 +11,10 @@ Psycheveda bridges behavioral psychology (CBT, NLP) with Vedic wellness.
 
 | Layer | Stack | Role |
 |--------|--------|------|
-| **Primary app** | Expo 56 + Expo Router + React Native Web | Production UI (Replit + local dev) |
+| **Primary app** | Expo 56 + Expo Router + React Native Web | Production UI (local + **Vercel**) |
 | **Data** | **Supabase** (PostgreSQL + Auth) | Live store for `mobile/` |
+| **Web payments** | Razorpay Standard Checkout + Supabase Edge Functions | `create-order`, `verify-payment` |
+| **Mobile payments** | RevenueCat (optional) | iOS / Android IAP |
 | **Legacy MVP** | CRA `frontend/` + FastAPI `backend/` + MongoDB | Original Emergent MVP; schema mirrored in SQL migrations |
 
 - **Auth (mobile):** Supabase email/password (`mobile/src/lib/supabase.js`, `auth.js`)
@@ -28,25 +30,35 @@ Psycheveda bridges behavioral psychology (CBT, NLP) with Vedic wellness.
 ├── database/
 │   ├── supabase_migration.sql   # v1 core schema
 │   ├── supabase_migration_v2.sql … v5.sql
+│   ├── supabase_migration_v6.sql … v6_5.sql  # Reset Plan + Razorpay
+├── supabase/
+│   ├── config.toml              # Edge Function JWT settings
+│   └── functions/
+│       ├── create-order/        # Razorpay Standard Checkout (active)
+│       ├── verify-payment/
+│       ├── create-reset-checkout/  # legacy subscription path
+│       └── _shared/razorpay.ts
 ├── mobile/                      # ★ Primary app (Expo + Supabase)
-│   ├── package.json             # npm run web → port 5001
-│   ├── app.json
-│   ├── .env                     # EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
-│   ├── app/                     # Expo Router screens
-│   │   ├── dashboard.js         # Better You Tips, mini-tasks, goals, Track modal
-│   │   ├── goals/[id].js        # Manual: progress logs; Elevate: % + sub-task history
-│   │   ├── journal.js, journal-history.js
-│   │   ├── gratitude.js, gratitude-history.js
-│   │   ├── gut-brain-plan.js    # Success Identity assessment + Elevate / Life Coach CTAs
-│   │   ├── life-coach.js        # Consult a Life Coach — coming soon screen
-│   │   ├── hpa-axis.js          # Revive screen (nav label “Revive”)
-│   │   └── auth.js, onboarding.js, …
+│   ├── package.json             # npm run web → 5001; export:web → dist/
+│   ├── vercel.json              # SPA rewrites for production
+│   ├── app.json                 # web.favicon → favicon-v2.png
+│   ├── .env                     # EXPO_PUBLIC_SUPABASE_*, EXPO_PUBLIC_RAZORPAY_KEY_ID
+│   ├── app/
+│   │   ├── reset-subscribe.js   # Reset Plan paywall hub
+│   │   ├── reset-payment.js     # Razorpay checkout (web)
+│   │   ├── gut-brain-plan.js    # Gated — Success Identity + Elevate
+│   │   ├── hpa-axis.js          # Revive → Plan routes to /reset-subscribe
 │   ├── assets/
-│   │   ├── psychologicaltips.json   # Better You Tips content (id, pillar, content)
-│   │   └── daily-oracle-bg.png      # Better You Tips popup background
+│   │   ├── brand-logo.png           # Header / auth logo
+│   │   ├── favicon-v2.png           # Web favicon (icon only)
+│   │   ├── psychologicaltips.json
+│   │   └── daily-oracle-bg.png
 │   └── src/
 │       ├── lib/
-│       │   ├── api.js             # fetchDashboard(), invalidateDashboardCache()
+│       │   ├── resetSubscription.js # Entitlement helpers, plan pricing
+│       │   ├── razorpayWeb.js       # Standard Checkout modal (web)
+│       │   ├── revenueCat.js        # Mobile IAP (iOS/Android)
+│       │   ├── api.js               # fetchDashboard, createRazorpayOrder, …
 │       │   ├── completionProbability.js
 │       │   ├── elevatePlan.js       # Rules-matrix v2 plan builder
 │       │   ├── elevateRulesMatrix.json
@@ -57,7 +69,8 @@ Psycheveda bridges behavioral psychology (CBT, NLP) with Vedic wellness.
 │           ├── DailyOracleCard.js   # Better You Tips trigger + popup modal
 │           ├── TrackModal.js
 │           ├── ElevateSubtaskHistory.js
-│           └── AppShell.js, ui.js, …
+│           ├── ResetPaywall.js
+│           └── AppShell.js, ui.js, DateRangeCalendar.js, …
 ├── frontend/                    # Legacy CRA (FastAPI client)
 ├── backend/
 │   ├── server.py
@@ -90,7 +103,22 @@ Psycheveda bridges behavioral psychology (CBT, NLP) with Vedic wellness.
 | `gratitude_entries` | Three blessings (+15 Bless) |
 | `gut_brain_assessments` | Success Identity questionnaire |
 
-Run migrations **v1 → v5** in order in the Supabase SQL editor.
+Run migrations **v1 → v6_5** in order in the Supabase SQL editor.
+
+### Reset Plan subscriptions (v6+)
+
+| Table / RPC | Role |
+|-------------|------|
+| `reset_subscriptions` | Active entitlement per user (`provider`: coupon, revenuecat, razorpay) |
+| `reset_promo_coupons` | Multi-use codes; 100% off or `checkout_price_inr` (e.g. ₹1) |
+| `get_reset_entitlement()` | Client read — entitled?, days remaining |
+| `redeem_reset_coupon()` | Free monthly access (test codes) |
+| `validate_reset_checkout_coupon()` | Paid promo before Razorpay checkout |
+| `admin_sync_reset_razorpay_subscription()` | Edge Function grants access after payment |
+
+**Gating:** `gut-brain-plan.js` redirects if not entitled; dashboard hides Elevate content when lapsed.
+
+**Pricing:** ₹150/month, ₹1500/year. Web: Razorpay Standard Checkout. Mobile: RevenueCat (when configured).
 
 ### Completion probability (`completionProbability.js`)
 
@@ -125,6 +153,10 @@ Color bands in UI (`probColorForScore` in `utils.js`): ≥75% green, 50–74% am
 | `goalReminders` | Manual goals missing today's progress log |
 | `generateElevatePlan` | Local rules-matrix plan (`elevatePlan.js` + `elevateRulesMatrix.json`) |
 | `createElevateGoal` | Inserts goal + all plan `mini_tasks` |
+| `getResetEntitlement` | RPC wrapper for Plan gating |
+| `createRazorpayOrder` | Edge Function `create-order` |
+| `verifyRazorpayPayment` | Edge Function `verify-payment` |
+| `redeemResetCoupon` | Free coupon redemption |
 
 ### Better You Tips (`psychologicalTips.js` + `DailyOracleCard.js`)
 
@@ -141,7 +173,7 @@ Color bands in UI (`probColorForScore` in `utils.js`): ≥75% green, 50–74% am
 - Bottom nav label: **Revive** (route `/hpa-axis` unchanged).
 - Layout: phase chips → hero (tagline + phase description) → **Plan** button → intro copy.
 - Phase copy in `hpaPalettes` (`theme.js`): Morning / Afternoon / Night with tailored descriptions.
-- **Plan** → `/gut-brain-plan` (Success Identity assessment).
+- **Plan** → `/reset-subscribe` (paywall) → `/reset-payment` (web Razorpay) or `/gut-brain-plan` if entitled.
 
 ### Success Identity (`successIdentity.js` + `gut-brain-plan.js`)
 
@@ -214,14 +246,17 @@ Used by `frontend/` only. Routes prefixed `/api`.
 
 ```bash
 cd mobile
-cp .env.example .env   # if you maintain one; else create .env manually
 npm install --legacy-peer-deps
 npm run web            # → http://localhost:5001
+npm run export:web     # → dist/ (Vercel production build)
 ```
 
-- **`npm run web`** runs `expo start --web --port 5001` (do not use `--host 0.0.0.0` — unsupported in current Expo CLI).
-- **Port 5000** is often occupied by macOS AirPlay Receiver; use 5001 locally.
-- Replit workflow may still target port 5000 — adjust workflow ports if preview fails locally.
+## Production (Vercel)
+
+- Root: `mobile/`, output: `dist/`, see `mobile/vercel.json`
+- Env: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_RAZORPAY_KEY_ID`
+- Supabase Auth Site URL must match Vercel domain
+- Details: `.agents/memory/vercel-deployment.md`
 
 Legacy: Mongo + `uvicorn` on :8001 + CRA `frontend` on :3000.
 
@@ -233,3 +268,5 @@ Legacy: Mongo + `uvicorn` on :8001 + CRA `frontend` on :3000.
 - **Elevate goals** must have `goals.source = 'elevate'` in Supabase (v5); otherwise they behave as manual goals.
 - **Dashboard perf:** do not reintroduce `select('*, mini_tasks(*)')` on list views — use `fetchDashboard` / slim selects; full tasks load on goal detail only.
 - **Internal routes:** `/gut-brain-plan`, `gut_brain_assessments` table names are legacy; user-facing brand is **Revive** + **Plan**.
+- **Web favicon:** `mobile/assets/favicon-v2.png` via `app.json` `web.favicon` (icon only, not full logo).
+- **Web payments:** Razorpay Standard Checkout only needs `RAZORPAY_KEY_ID` + `SECRET` in Supabase secrets — no subscription `plan_id` for current flow.

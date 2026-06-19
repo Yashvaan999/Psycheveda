@@ -73,8 +73,11 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error('create-order', e);
     const msg = e?.message || 'Could not create order';
-    if (msg.toLowerCase().includes('auth')) {
-      return jsonResponse({ error: msg }, 401);
+    // Razorpay key/secret mismatch — not a user-session 401
+    if (msg.toLowerCase().includes('authentication failed')) {
+      return jsonResponse({
+        error: 'Razorpay authentication failed. Check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Supabase secrets.',
+      }, 500);
     }
     return jsonResponse({ error: msg }, 500);
   }

@@ -4,17 +4,22 @@ Your mind power buddy — behavioral psychology (CBT, NLP) meets Vedic wellness.
 
 ## What runs today
 
-The **primary app** is the Expo project in [`mobile/`](mobile/): React Native + Expo Router, backed by **Supabase** (Auth + Postgres).
+The **primary app** is the Expo project in [`mobile/`](mobile/): React Native + Expo Router + React Native Web, backed by **Supabase** (Auth + Postgres).
 
-A **legacy MVP** remains in [`frontend/`](frontend/) + [`backend/`](backend/) (FastAPI + MongoDB). See [`architecture.md`](architecture.md).
+- **Web:** `npm run web` locally or **Vercel** in production
+- **Payments (web):** Razorpay Standard Checkout via Supabase Edge Functions
+- **Payments (mobile):** RevenueCat IAP (optional; App Store / Play)
+- **Legacy MVP:** [`frontend/`](frontend/) + [`backend/`](backend/) — see [`architecture.md`](architecture.md)
 
-## Quick start (mobile)
+## Quick start (local)
 
 ### 1. Database
 
-Create a [Supabase](https://supabase.com) project and run migrations **in order** in the SQL editor:
+Run migrations **in order** in the Supabase SQL editor:
 
-`database/supabase_migration.sql` → `v2` → `v3` → `v4` → `v5`
+`supabase_migration.sql` → `v2` → `v3` → `v4` → `v5` → **`v6`** → `v6_1` → `v6_2` → `v6_3` → `v6_4` → `v6_5`
+
+See [`.agents/memory/supabase-migrations.md`](.agents/memory/supabase-migrations.md).
 
 ### 2. Environment
 
@@ -23,9 +28,8 @@ Create `mobile/.env`:
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+EXPO_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxx
 ```
-
-From Supabase Dashboard → **Project Settings** → **API**.
 
 ### 3. Install and run
 
@@ -35,84 +39,61 @@ npm install --legacy-peer-deps
 npm run web
 ```
 
-Open **http://localhost:5001**
+Open **http://localhost:5001** (port 5001 — macOS often reserves 5000 for AirPlay).
 
-| Note | Detail |
-|------|--------|
-| Port | **5001** — macOS often reserves **5000** for AirPlay |
-| Script | `npm run web` = `expo start --web --port 5001` |
-| Interactive | `npm start` opens Expo dev tools (scan QR / pick web) |
+### 4. Web payments (Razorpay test mode)
 
-### 4. Web payments (Razorpay — test mode, no Play Store needed)
-
-1. Run migration `database/supabase_migration_v6_3.sql` in Supabase SQL editor (after v6 / v6.2).
-2. [Razorpay Dashboard](https://dashboard.razorpay.com) → **Test mode** → create two **Subscription plans**:
-   - Monthly **₹150** → copy `plan_id`
-   - Yearly **₹1500** → copy `plan_id`
-3. Deploy Edge Functions (one-time). **Do not use `npm install -g`** (often permission denied on Mac). Use **`npx`** or Homebrew instead:
+1. [Razorpay Dashboard](https://dashboard.razorpay.com) → **Test mode** → **Settings → API Keys** → generate test Key ID + Secret
+2. Set Supabase secrets and deploy Edge Functions:
 
 ```bash
-# Option A — npx (no global install)
 cd /path/to/Psycheveda
-npx supabase login
-npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase secrets set \
-  RAZORPAY_KEY_ID=rzp_test_xxx RAZORPAY_KEY_SECRET=xxx \
-  RAZORPAY_PLAN_MONTHLY=plan_xxx RAZORPAY_PLAN_YEARLY=plan_xxx \
-  RAZORPAY_WEBHOOK_SECRET=whsec_xxx
-npx supabase functions deploy create-reset-checkout confirm-reset-razorpay razorpay-webhook
-
-# Option B — Homebrew (one-time install)
-# brew install supabase/tap/supabase
-# then use `supabase` instead of `npx supabase`
+SUPABASE_ACCESS_TOKEN=sbp_xxx npx supabase secrets set --project-ref YOUR_PROJECT_REF \
+  RAZORPAY_KEY_ID=rzp_test_xxx RAZORPAY_KEY_SECRET=xxx
+SUPABASE_ACCESS_TOKEN=sbp_xxx npx supabase functions deploy create-order verify-payment --project-ref YOUR_PROJECT_REF
 ```
 
-4. Razorpay → **Webhooks** → URL  
-   `https://YOUR_PROJECT_REF.supabase.co/functions/v1/razorpay-webhook`  
-   Events: `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.halted`
-5. Add to `mobile/.env`:
+3. Revive → **Plan** → Payment → **Pay**
+4. Test: **Netbanking → Success**, or card **`5267 3181 8797 5449`**, or UPI **`success@razorpay`**
 
-```env
-EXPO_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxx
-```
+Coupons: test codes (`RESET-QA-7K4M`) = free access; `RESET-LAUNCH-1` = Pay ₹1 (after `dev_reset_launch_coupon.sql`).
 
-6. Restart `npm run web` → Revive → **Plan** → paywall → **Pay**  
-   Test card: `4111 1111 1111 1111`, any future expiry, any CVV.
+Full guide: [`.agents/memory/razorpay-web-checkout.md`](.agents/memory/razorpay-web-checkout.md)
 
-Coupons still work on web without Razorpay. Mobile IAP (RevenueCat) is optional until App Store / Play setup.
-
-### Restart dev server
+## Production deploy (Vercel)
 
 ```bash
-# From mobile/
-npm run web
+cd mobile && npm run export:web
 ```
 
-If the port is stuck:
+| Vercel setting | Value |
+|----------------|--------|
+| Root Directory | `mobile` |
+| Build Command | `npm run export:web` |
+| Output Directory | `dist` |
+| Install Command | `npm install --legacy-peer-deps` |
 
-```bash
-lsof -ti:5001 | xargs kill -9
-npm run web
-```
+**Environment variables (Production):** same three `EXPO_PUBLIC_*` vars as `mobile/.env`. Redeploy after changes.
+
+**Supabase Auth:** set Site URL + Redirect URLs to your Vercel domain.
+
+Details: [`.agents/memory/vercel-deployment.md`](.agents/memory/vercel-deployment.md)
 
 ## Documentation
 
 | File | Contents |
 |------|----------|
-| [`architecture.md`](architecture.md) | File map, Revive, Better You Tips, Elevate v2, dashboard perf, APIs |
-| [`memory/PRD.md`](memory/PRD.md) | Product requirements and shipped features |
-| [`memory/test_credentials.md`](memory/test_credentials.md) | Test accounts, ports, and test flows |
-| [`design_guidelines.json`](design_guidelines.json) | UI design system |
-| [`.agents/memory/`](.agents/memory/) | Agent runbooks (Elevate, Better You Tips, Life Coach, migrations, npm) |
+| [`architecture.md`](architecture.md) | File map, Reset Plan, payments, APIs |
+| [`memory/PRD.md`](memory/PRD.md) | Product requirements |
+| [`memory/test_credentials.md`](memory/test_credentials.md) | Env vars, test flows, Razorpay test cards |
+| [`.agents/memory/razorpay-web-checkout.md`](.agents/memory/razorpay-web-checkout.md) | Payment flow, secrets, debugging |
+| [`.agents/memory/vercel-deployment.md`](.agents/memory/vercel-deployment.md) | Hosting checklist |
+| [`.agents/memory/supabase-migrations.md`](.agents/memory/supabase-migrations.md) | Migration index v1–v6_5 |
 
 ## Key features
 
-- Five **pillars**, goals, and daily **mini-tasks**
-- **Better You Tips** — daily psychological framing popup from `mobile/assets/psychologicaltips.json` (pillar + content; absorb to dismiss)
-- **Manual goals:** progress logs + completion % from logged days
-- **Elevate plans:** generated locally from the Revive **Plan** assessment via `elevateRulesMatrix.json` (6–7 curated daily habits); tracked via mini-task checkboxes and sub-task history (no progress logs)
-- **Consult a Life Coach** — coming-soon placeholder from assessment results (`/life-coach`)
+- Five **pillars**, goals, daily **mini-tasks**, **Better You Tips**, **Revive** (`/hpa-axis`)
+- **Reset Plan** — Success Identity assessment + Elevate (₹150/mo, ₹1500/yr on web via Razorpay)
 - **Bless Points** (+5 task, +15 gratitude) and **Veda Streak**
 - NLP **journal** (2/day) and **gratitude** ritual
-- **Completion probability** per goal (Track modal)
-- **Revive** — circadian wellness screen (time-adaptive palette; internal route `/hpa-axis`)
+- **Elevate plans** from Plan assessment; **Life Coach** placeholder

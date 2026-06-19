@@ -1,6 +1,6 @@
 # Psycheveda — Test Credentials & Environment
 
-_Last updated: 2026-06-04_
+_Last updated: 2026-06-16_
 
 ## Mobile app (primary — Supabase)
 
@@ -9,11 +9,20 @@ _Last updated: 2026-06-04_
 File: **`mobile/.env`** (gitignored)
 
 ```env
-EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+EXPO_PUBLIC_SUPABASE_URL=https://tqdpjzekotwxnueemacu.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+EXPO_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxx
 ```
 
 Supabase Dashboard → **Project Settings** → **API** → Project URL + **anon public** key.
+
+**Razorpay Key Secret** goes in **Supabase Edge Function secrets only** — never in `.env`.
+
+### Vercel (production)
+
+Same three `EXPO_PUBLIC_*` variables in **Vercel → Settings → Environment Variables → Production**. Redeploy after changes.
+
+See `.agents/memory/vercel-deployment.md`.
 
 ### Run locally
 
@@ -96,3 +105,33 @@ API prefix: `/api`
 - `logProgress` on an Elevate goal should error in API.
 - Goal detail for Elevate shows mini-task guidance, not the log form.
 - Bell reminders list **manual** goals only.
+
+### Reset Plan + Razorpay (web)
+
+**Prerequisites:** migrations v6–v6_5; Supabase secrets `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET`; deploy `create-order` + `verify-payment`.
+
+1. Sign in → **Revive** → **Plan** → paywall → **Continue to payment**.
+2. **Pay ₹150** (or apply coupon first).
+3. Razorpay test methods:
+   - **Netbanking** → any bank → **Success**
+   - **UPI:** `success@razorpay`
+   - **Domestic card:** `5267 3181 8797 5449` (Mastercard)
+   - **Visa:** `4111 1111 1111 1111` (may fail with "international cards" on some accounts)
+4. After success → redirected to `/gut-brain-plan`.
+
+**Free test coupon:** `RESET-QA-7K4M` (apply on payment page → instant access).
+
+**₹1 promo:** run `database/dev_reset_launch_coupon.sql` → code `RESET-LAUNCH-1` → Apply → Pay ₹1.
+
+**Reset test access:** `/reset-subscribe?reset=1` expires active subscription (dev).
+
+### Razorpay debugging
+
+| Symptom | Check |
+|---------|--------|
+| Authentication failed | Supabase secrets Key ID + Secret match; redeploy functions |
+| 401 on create-order | Vercel anon key; Supabase Auth URLs; re-login |
+| International cards | Use Netbanking or `5267...` domestic card |
+| Pay works locally, fails on Vercel | Vercel env vars + redeploy |
+
+Logs: Supabase → Edge Functions → `create-order` / `verify-payment`.

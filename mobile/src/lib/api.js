@@ -29,17 +29,33 @@ export function invalidateDashboardCache() {
 
 /** Read `{ error }` from Edge Function non-2xx responses (Supabase hides it in `error.context`). */
 async function invokeEdgeFunction(name, body) {
-  const { data, error } = await supabase.functions.invoke(name, { body });
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Please log in again to continue checkout.');
+  }
+
+  const { data, error } = await supabase.functions.invoke(name, {
+    body,
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
   if (data?.error) throw new Error(data.error);
   if (error) {
     let msg = error.message;
+    let status = null;
     try {
       const res = error.context;
+      status = res?.status ?? null;
       if (res?.json) {
         const parsed = await res.json();
         if (parsed?.error) msg = parsed.error;
+        if (parsed?.code === 401 && parsed?.message && !parsed?.error) {
+          msg = parsed.message;
+        }
       }
     } catch { /* use default msg */ }
+    if (status === 401 && msg?.includes('JWT')) {
+      throw new Error('Session expired. Log out and log in again on this site.');
+    }
     throw new Error(msg || `Could not call ${name}`);
   }
   return data;

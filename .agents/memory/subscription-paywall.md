@@ -1,14 +1,26 @@
 ---
 name: Subscription paywall (deferred)
-description: Confirmed plan for subscriptions/premium Gut-Brain/bless coupons — paused by user, to build later.
+description: Main app subscription plan — paused. Reset Plan (Revive) is shipped separately.
 ---
 
-# Subscription, Premium Gut-Brain & Bless Coupons — DEFERRED
+# Main app subscription — DEFERRED
 
-User confirmed this plan, then paused it ("implement later"). Full plan draft was in
-`.local/tasks/subscription-paywall-plan.md`. Build only when user asks.
+User confirmed this plan, then paused it ("implement later"). Build only when user asks.
 
-## Confirmed decisions
+## Shipped separately: Reset Plan (Revive → Plan)
+
+**Reset Plan is live** — not part of this deferred scope:
+
+| Item | Detail |
+|------|--------|
+| Product | Success Identity assessment + Elevate habits |
+| Price | ₹150/month, ₹1500/year |
+| Web payments | Razorpay Standard Checkout (`create-order`, `verify-payment`) |
+| Mobile payments | RevenueCat IAP (optional) |
+| Coupons | `RESET-QA-*` (free), `RESET-LAUNCH-1` (₹1) |
+| Docs | `.agents/memory/razorpay-web-checkout.md` |
+
+## Confirmed decisions (main app — not built)
 - **Trial**: 7 calendar days since signup (derive from `profiles.created_at`). Full access during trial.
 - **After trial**: lock **Journal** and **Gratitude** until app-subscribed. **Goal tracking stays free forever.** Dashboard goal features free.
 - **App plan pricing**: ₹96/year or ₹122/month. (Note: ₹96/yr < one ₹122 month — user confirmed as-is.)
