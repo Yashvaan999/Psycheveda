@@ -131,16 +131,11 @@ export default function ResetPaywall({
 
       {couponOpen ? (
         <View style={styles.couponSection}>
-          <Text style={styles.couponHint}>
-            Test codes grant 1 month free. Same code can be used by many users.
-          </Text>
           <Input
             value={coupon}
             onChangeText={setCoupon}
-            placeholder="RESET-QA-7K4M"
             autoCapitalize="characters"
             autoCorrect={false}
-            style={{ marginTop: 8 }}
           />
           {err ? <Text style={styles.err}>{err}</Text> : null}
           <Button
@@ -289,12 +284,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.bg,
-  },
-  couponHint: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.subtext,
-    lineHeight: 18,
   },
   err: {
     color: colors.danger,

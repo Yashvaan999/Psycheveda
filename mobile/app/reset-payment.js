@@ -253,16 +253,11 @@ export default function ResetPayment() {
 
         {couponOpen ? (
           <View style={styles.couponSection}>
-            <Text style={styles.couponHint}>
-              Test codes (RESET-QA-…) grant free access. Promo codes reduce checkout to ₹1 — apply, then Pay.
-            </Text>
             <Input
               value={coupon}
               onChangeText={setCoupon}
-              placeholder="RESET-QA-7K4M"
               autoCapitalize="characters"
               autoCorrect={false}
-              style={{ marginTop: 8 }}
             />
             <Button
               variant="secondary"
@@ -401,11 +396,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
-  },
-  couponHint: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.subtext,
-    lineHeight: 18,
   },
 });

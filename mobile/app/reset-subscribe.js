@@ -74,9 +74,13 @@ export default function ResetSubscribe() {
     router.replace('/gut-brain-plan');
   };
 
+  const goToRevive = () => {
+    router.replace('/hpa-axis');
+  };
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 12 }]}>
-      <Pressable onPress={() => router.back()} hitSlop={10} style={styles.back}>
+      <Pressable onPress={goToRevive} hitSlop={10} style={styles.back}>
         <ArrowLeft size={20} strokeWidth={1.6} color={colors.subtext} />
       </Pressable>
 
@@ -113,7 +117,7 @@ export default function ResetSubscribe() {
             onSubscribed={onSubscribed}
             onResetTestAccess={onResetTestAccess}
             showClose
-            onClose={() => router.back()}
+            onClose={goToRevive}
           />
         )}
       </ScrollView>
