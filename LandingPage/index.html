@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Psycheveda — Circadian & Mind-Body Alignment Engine. Align your biology with your ambition.">
+    <title>Psycheveda — Circadian & Mind-Body Alignment Engine</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        alabaster: '#FAF7F2',
+                        sand: '#F2ECE1',
+                        emeraldDark: '#2A4736',
+                        terracotta: '#C86D44',
+                        charcoal: '#1C211E',
+                        ash: '#6B7570'
+                    },
+                    fontFamily: {
+                        serif: ['Fraunces', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'terracotta-glow': '0 0 24px rgba(200, 109, 68, 0.35)',
+                        'terracotta-glow-lg': '0 0 36px rgba(200, 109, 68, 0.45)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+        }
+        .stagger-item.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cta-store {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .cta-store:hover,
+        .cta-store:focus-visible {
+            transform: scale(1.05);
+            box-shadow: 0 0 28px rgba(200, 109, 68, 0.4);
+            outline: none;
+        }
+
+        .tier-card-btn {
+            transition: all 0.3s ease;
+        }
+        .tier-card-btn.active {
+            transform: translateY(-2px);
+        }
+
+        #tier-detail-panel {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+        .hero-badge {
+            animation: subtle-pulse 3s ease-in-out infinite;
+        }
+
+        .brand-logo {
+            display: block;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .brand-logo-wrap {
+            height: 5.25rem;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+        }
+        .brand-logo.nav-logo {
+            height: 5.25rem;
+            transform: scale(1);
+            transform-origin: left center;
+        }
+        .brand-logo.footer-logo {
+            height: 3.25rem;
+        }
+    </style>
+</head>
+<body class="bg-alabaster text-charcoal font-sans antialiased selection:bg-terracotta selection:text-white">
+
+    <!-- STICKY NAVBAR -->
+    <nav id="navbar" class="fixed top-0 w-full h-24 px-6 md:px-12 flex justify-between items-center z-50 transition-all duration-300">
+        <a href="#" class="brand-logo-wrap group">
+            <img src="assets/logo.png" alt="Psycheveda — empower your mind" class="brand-logo nav-logo group-hover:opacity-90 transition-opacity">
+        </a>
+        <div class="hidden md:flex space-x-8 text-sm font-medium text-ash">
+            <a href="#principles" class="hover:text-emeraldDark transition-colors">Core Principles</a>
+            <a href="#tiers" class="hover:text-emeraldDark transition-colors">Success Identity</a>
+        </div>
+        <a href="#download" class="bg-emeraldDark hover:bg-terracotta text-alabaster text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105">Get App</a>
+    </nav>
+
+    <!-- HERO -->
+    <section class="max-w-5xl mx-auto px-6 pt-36 md:pt-40 pb-20 text-center flex flex-col items-center">
+        <span class="hero-badge inline-block px-4 py-1.5 rounded-full bg-sand text-terracotta font-semibold text-xs tracking-wider uppercase mb-6">
+            Psychology . Prosperity
+        </span>
+        <h1 class="font-serif text-4xl md:text-6xl font-bold text-emeraldDark leading-tight max-w-4xl mb-6">
+            Stop Relying on Willpower alone.<br>Empower your mind and enhance your life
+        </h1>
+        <p class="text-ash text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
+            Psycheveda bridges modern neuroscience and Vedic wisdom to calculate your Success Identity, eliminate chronic burnout, and optimize your daily focus loops.
+        </p>
+
+        <div id="download" class="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mb-12">
+            <a href="#" class="cta-store w-full sm:w-auto bg-charcoal hover:bg-emeraldDark text-white px-6 py-3.5 rounded-xl flex items-center justify-center space-x-3">
+                <svg class="w-7 h-7 fill-current shrink-0" viewBox="0 0 384 512" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-12 69.5-34.3z"/></svg>
+                <div class="text-left">
+                    <div class="text-[10px] uppercase font-medium text-gray-400">Download on the</div>
+                    <div class="text-sm font-semibold -mt-1">App Store</div>
+                </div>
+            </a>
+            <a href="#" class="cta-store w-full sm:w-auto bg-charcoal hover:bg-emeraldDark text-white px-6 py-3.5 rounded-xl flex items-center justify-center space-x-3">
+                <svg class="w-7 h-7 fill-current shrink-0" viewBox="0 0 512 512" aria-hidden="true"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l220.7-221.3 60.1 60.1L104.6 499z"/></svg>
+                <div class="text-left">
+                    <div class="text-[10px] uppercase font-medium text-gray-400">Get it on</div>
+                    <div class="text-sm font-semibold -mt-1">Google Play</div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- CORE PRINCIPLES -->
+    <section id="principles" class="bg-sand py-20 px-6 fade-in-section">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-emeraldDark mb-4">Built on Three Foundations</h2>
+                <p class="text-ash max-w-xl mx-auto">True high performance isn't about pushing harder. It's about optimizing your biological launchpad.</p>
+            </div>
+
+            <div id="principles-grid" class="grid md:grid-cols-3 gap-8">
+                <div class="stagger-item bg-alabaster p-8 rounded-2xl shadow-sm border border-black/5 hover:-translate-y-1.5 transition-all duration-300" data-delay="0">
+                    <div class="w-12 h-12 rounded-xl bg-terracotta/10 text-terracotta flex items-center justify-center mb-6 text-xl" aria-hidden="true">⚡</div>
+                    <h3 class="font-serif text-xl font-semibold text-emeraldDark mb-3">Biochemical Alignment</h3>
+                    <p class="text-ash text-sm leading-relaxed">Fix your circadian rhythms, HPA-axis fatigue, and metabolic energy baseline before demanding complex mental output.</p>
+                </div>
+                <div class="stagger-item bg-alabaster p-8 rounded-2xl shadow-sm border border-black/5 hover:-translate-y-1.5 transition-all duration-300" data-delay="150">
+                    <div class="w-12 h-12 rounded-xl bg-emeraldDark/10 text-emeraldDark flex items-center justify-center mb-6 text-xl" aria-hidden="true">🧠</div>
+                    <h3 class="font-serif text-xl font-semibold text-emeraldDark mb-3">Cognitive Reframing</h3>
+                    <p class="text-ash text-sm leading-relaxed">Utilize structured 5-step NLP frames to rewrite subconscious stress loops, converting mental resistance into effortless focus.</p>
+                </div>
+                <div class="stagger-item bg-alabaster p-8 rounded-2xl shadow-sm border border-black/5 hover:-translate-y-1.5 transition-all duration-300" data-delay="300">
+                    <div class="w-12 h-12 rounded-xl bg-terracotta/10 text-terracotta flex items-center justify-center mb-6 text-xl" aria-hidden="true">🎯</div>
+                    <h3 class="font-serif text-xl font-semibold text-emeraldDark mb-3">Frictionless Micro-Goals</h3>
+                    <p class="text-ash text-sm leading-relaxed">Transition your identity one tier at a time with 5 dynamic daily micro-habits designed for your specific biological window.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUCCESS IDENTITY TIERS -->
+    <section id="tiers" class="py-20 px-6 max-w-5xl mx-auto fade-in-section">
+        <div class="text-center mb-12">
+            <h2 class="font-serif text-3xl md:text-4xl font-bold text-emeraldDark mb-4">Explore Success Identity Tiers</h2>
+            <p class="text-ash max-w-xl mx-auto">Select a tier to view its diagnostic profile, bottleneck, and transition protocol.</p>
+        </div>
+
+        <!-- Tier selector cards -->
+        <div id="tier-tabs" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            <button type="button" onclick="selectTier('survivor')" id="tab-survivor" class="tier-card-btn active stagger-item stagger-tier bg-emeraldDark text-white p-4 rounded-2xl text-left shadow-md" data-delay="0" aria-pressed="true">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70">Tier 1</span>
+                <span class="block font-serif text-lg font-bold mt-0.5">Survivor</span>
+                <span class="block text-xs mt-1 opacity-80">0–25%</span>
+            </button>
+            <button type="button" onclick="selectTier('soldier')" id="tab-soldier" class="tier-card-btn stagger-item stagger-tier bg-sand text-ash hover:text-emeraldDark p-4 rounded-2xl text-left border border-ash/10" data-delay="100" aria-pressed="false">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70">Tier 2</span>
+                <span class="block font-serif text-lg font-bold mt-0.5">Soldier</span>
+                <span class="block text-xs mt-1 opacity-80">25–50%</span>
+            </button>
+            <button type="button" onclick="selectTier('warrior')" id="tab-warrior" class="tier-card-btn stagger-item stagger-tier bg-sand text-ash hover:text-emeraldDark p-4 rounded-2xl text-left border border-ash/10" data-delay="200" aria-pressed="false">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70">Tier 3</span>
+                <span class="block font-serif text-lg font-bold mt-0.5">Warrior</span>
+                <span class="block text-xs mt-1 opacity-80">50–75%</span>
+            </button>
+            <button type="button" onclick="selectTier('superhero')" id="tab-superhero" class="tier-card-btn stagger-item stagger-tier bg-sand text-ash hover:text-emeraldDark p-4 rounded-2xl text-left border border-ash/10" data-delay="300" aria-pressed="false">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70">Tier 4</span>
+                <span class="block font-serif text-lg font-bold mt-0.5">Superhero</span>
+                <span class="block text-xs mt-1 opacity-80">75–100%</span>
+            </button>
+        </div>
+
+        <!-- Detail panel -->
+        <div id="tier-detail-panel" class="bg-sand p-8 md:p-10 rounded-2xl border border-ash/10">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                <div>
+                    <span id="tier-badge" class="text-xs font-bold text-terracotta uppercase tracking-wider">Tier 1 • 0–25% Score</span>
+                    <h3 id="tier-title" class="font-serif text-2xl md:text-3xl font-bold text-emeraldDark mt-1">Survivor State</h3>
+                </div>
+                <div id="tier-icon" class="w-14 h-14 rounded-2xl bg-terracotta/15 flex items-center justify-center text-2xl" aria-hidden="true">🌱</div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-5">
+                <div class="bg-alabaster p-5 rounded-xl border border-black/5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-terracotta mb-2">Psychological State</h4>
+                    <p id="tier-psych" class="text-sm text-ash leading-relaxed">Chronic fight-or-flight activation. Brain fog, emotional numbness, and a sense of merely surviving each day rather than living with intention.</p>
+                </div>
+                <div class="bg-alabaster p-5 rounded-xl border border-black/5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-terracotta mb-2">Key Bottleneck</h4>
+                    <p id="tier-bottleneck" class="text-sm text-ash leading-relaxed">Dysregulated circadian rhythm, depleted cortisol awakening response, and severe HPA-axis fatigue blocking any sustainable output.</p>
+                </div>
+                <div class="bg-alabaster p-5 rounded-xl border border-black/5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-terracotta mb-2">Transition Protocol</h4>
+                    <p id="tier-protocol" class="text-sm text-ash leading-relaxed">100% focus on circadian stabilization: morning sunlight anchor, hydration reset, and zero-friction physical recovery before any cognitive demands.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-sand border-t border-ash/10 py-4 px-6 text-center">
+        <div class="flex items-center justify-center mb-4">
+            <img src="assets/logo.png" alt="Psycheveda — empower your mind" class="brand-logo footer-logo">
+        </div>
+        <p class="text-xs text-ash">© 2026 Psycheveda. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // ── Sticky navbar blur ──
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('backdrop-blur-md', 'bg-alabaster/80', 'shadow-sm');
+            } else {
+                navbar.classList.remove('backdrop-blur-md', 'bg-alabaster/80', 'shadow-sm');
+            }
+        }, { passive: true });
+
+        // ── Intersection Observer: sections + staggered children ──
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+
+                entry.target.querySelectorAll('.stagger-item').forEach(item => {
+                    const delay = parseInt(item.dataset.delay || '0', 10);
+                    setTimeout(() => item.classList.add('is-visible'), delay);
+                });
+            });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('.fade-in-section').forEach(section => fadeObserver.observe(section));
+
+        // ── Success Identity Tiers ──
+        const tiers = {
+            survivor: {
+                badge: 'Tier 1 • 0–25% Score',
+                title: 'Survivor State',
+                icon: '🌱',
+                psych: 'Chronic fight-or-flight activation. Brain fog, emotional numbness, and a sense of merely surviving each day rather than living with intention.',
+                bottleneck: 'Dysregulated circadian rhythm, depleted cortisol awakening response, and severe HPA-axis fatigue blocking any sustainable output.',
+                protocol: '100% focus on circadian stabilization: morning sunlight anchor, hydration reset, and zero-friction physical recovery before any cognitive demands.'
+            },
+            soldier: {
+                badge: 'Tier 2 • 25–50% Score',
+                title: 'Soldier State',
+                icon: '⚔️',
+                psych: 'Functional but depleted. Executes through grueling willpower with underlying anxiety. Tasks get done, but at a steep emotional and energetic cost.',
+                bottleneck: 'Adenosine mismanagement, mid-afternoon metabolic crashes, and reliance on stimulants to mask underlying energy deficits.',
+                protocol: 'Replace raw willpower with automated energy efficiency: adenosine pacing, 14:00 stimulant cutoff, and basic NLP journaling to offload mental loops.'
+            },
+            warrior: {
+                badge: 'Tier 3 • 50–75% Score',
+                title: 'Warrior State',
+                icon: '🛡️',
+                psych: 'Conscious ambition with variable biochemistry. Strong purpose and drive, but susceptible to sudden burnout phases and identity overreach.',
+                bottleneck: 'Inconsistent HPA-axis buffering, flow-state dependency without recovery infrastructure, and unprocessed subconscious stress patterns.',
+                protocol: 'Peak flow integration with structured recovery: 5-step NLP cognitive reframing, HPA-axis buffer rituals, and tier-appropriate micro-goal scaling.'
+            },
+            superhero: {
+                badge: 'Tier 4 • 75–100% Score',
+                title: 'Superhero State',
+                icon: '✨',
+                psych: 'Optimal mind-body integration. High processing clarity, exceptional adaptive resilience, and effortless daily task execution with deep purpose alignment.',
+                bottleneck: 'Complacency risk, environmental sleep hygiene blind spots, and over-optimization without somatic grounding.',
+                protocol: 'Environmental sleep hygiene mastery, high-intensity somatic output, blind-spot protection audits, and legacy-level goal architecture.'
+            }
+        };
+
+        function setTierTabActive(tab, isActive) {
+            tab.classList.toggle('active', isActive);
+            tab.classList.toggle('bg-emeraldDark', isActive);
+            tab.classList.toggle('text-white', isActive);
+            tab.classList.toggle('shadow-md', isActive);
+            tab.classList.toggle('bg-sand', !isActive);
+            tab.classList.toggle('text-ash', !isActive);
+            tab.classList.toggle('border', !isActive);
+            tab.classList.toggle('border-ash/10', !isActive);
+            tab.classList.toggle('hover:text-emeraldDark', !isActive);
+            tab.setAttribute('aria-pressed', isActive);
+        }
+
+        function selectTier(key) {
+            Object.keys(tiers).forEach(k => {
+                setTierTabActive(document.getElementById(`tab-${k}`), k === key);
+            });
+
+            const panel = document.getElementById('tier-detail-panel');
+            panel.style.opacity = '0';
+            panel.style.transform = 'translateY(8px)';
+
+            setTimeout(() => {
+                const t = tiers[key];
+                document.getElementById('tier-badge').textContent = t.badge;
+                document.getElementById('tier-title').textContent = t.title;
+                document.getElementById('tier-icon').textContent = t.icon;
+                document.getElementById('tier-psych').textContent = t.psych;
+                document.getElementById('tier-bottleneck').textContent = t.bottleneck;
+                document.getElementById('tier-protocol').textContent = t.protocol;
+                panel.style.opacity = '1';
+                panel.style.transform = 'translateY(0)';
+            }, 180);
+        }
+
+    </script>
+</body>
+</html>
