@@ -60,16 +60,26 @@ Coupons: test codes (`RESET-QA-7K4M`) = free access; `RESET-LAUNCH-1` = Pay ₹1
 
 Full guide: [`.agents/memory/razorpay-web-checkout.md`](.agents/memory/razorpay-web-checkout.md)
 
-## Production deploy (Vercel)
+## Production build
+
+From repo root or `mobile/`:
 
 ```bash
-cd mobile && npm run export:web
+# from root (delegates to mobile/)
+npm run build
+
+# or from mobile/
+cd mobile && npm install --legacy-peer-deps && npm run build
 ```
+
+Output: `mobile/dist/`. Preview locally with `npm run preview` (from root or `mobile/`).
+
+## Production deploy (Vercel)
 
 | Vercel setting | Value |
 |----------------|--------|
 | Root Directory | `mobile` |
-| Build Command | `npm run export:web` |
+| Build Command | `npm run build` |
 | Output Directory | `dist` |
 | Install Command | `npm install --legacy-peer-deps` |
 

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "expo start",
     "web": "expo start --web --port 5001",
+    "build": "expo export --platform web",
     "export:web": "expo export --platform web",
+    "preview": "npx serve dist -p 5001",
     "android": "expo start --android",
     "ios": "expo start --ios"
   },

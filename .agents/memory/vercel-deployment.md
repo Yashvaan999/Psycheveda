@@ -9,7 +9,7 @@ description: Host Expo web build on Vercel with Supabase and Razorpay env vars.
 
 ```bash
 cd mobile
-npm run export:web   # output: dist/
+npm run build   # same as export:web → dist/
 ```
 
 `mobile/vercel.json` — SPA rewrites for Expo Router deep links.
@@ -20,7 +20,7 @@ npm run export:web   # output: dist/
 |---------|--------|
 | Root Directory | `mobile` |
 | Framework | Other |
-| Build Command | `npm run export:web` |
+| Build Command | `npm run build` |
 | Output Directory | `dist` |
 | Install Command | `npm install --legacy-peer-deps` |
 
@@ -56,7 +56,7 @@ Hard-refresh or incognito if browser caches old favicon.
 ## Deploy checklist
 
 ```text
-☐ npm run export:web succeeds locally
+☐ npm run build succeeds locally
 ☐ Vercel env vars set (all three EXPO_PUBLIC_*)
 ☐ Vercel redeployed
 ☐ Supabase Auth URLs = Vercel domain

@@ -15,17 +15,21 @@ cd mobile && npm install --legacy-peer-deps && npm run web
 
 → **http://localhost:5001** (`expo start --web --port 5001`)
 
-**Production build (Vercel):**
+**Production build:**
 
 ```bash
-cd mobile && npm run export:web
+# from repo root
+npm run build
+
+# or from mobile/
+cd mobile && npm run build   # same as export:web → mobile/dist/
 ```
 
-Output: `mobile/dist/`. See `.agents/memory/vercel-deployment.md`.
+CI and Vercel use `npm run build` in `mobile/`. See `.agents/memory/vercel-deployment.md`.
 
 **Replit** may still use port 5000 in `.replit` workflow — adjust if preview conflicts with macOS AirPlay.
 
-The workspace **root** `package.json` is a separate Vite stub — do not install mobile runtime deps there.
+The workspace **root** `package.json` only orchestrates scripts (`build` / `web` / `preview` → `mobile/`). Install app deps in `mobile/`, not at root.
 
 ## Install a new package
 

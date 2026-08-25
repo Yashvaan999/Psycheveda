@@ -2,35 +2,16 @@
   "name": "psycheveda",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
+  "description": "Psycheveda monorepo — production app lives in mobile/",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf node_modules/.vite dist",
+    "dev": "npm run web --prefix mobile",
+    "web": "npm run web --prefix mobile",
+    "build": "npm run build --prefix mobile",
+    "preview": "npm run preview --prefix mobile",
+    "clean": "rm -rf mobile/dist",
     "rebuild": "npm run clean && npm run build"
   },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.106.1",
-    "axios": "^1.7.7",
-    "clsx": "^2.1.1",
-    "drizzle-zod": "^0.8.3",
-    "lucide-react": "^0.468.0",
-    "openai": "^6.39.1",
-    "p-limit": "^7.3.0",
-    "p-retry": "^7.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.27.0",
-    "tailwind-merge": "^2.5.4",
-    "zod": "^4.4.3",
-    "zod-validation-error": "^5.0.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.14",
-    "vite": "^5.4.11"
+  "engines": {
+    "node": ">=20"
   }
 }
