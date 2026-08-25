@@ -12,27 +12,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
 
     steps:
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
+          node-version: 20
+
+      - name: Check Node version
+        run: node --version
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Build application
         run: npm run build
-        env:
-          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: public-anon-key-for-ci
-          EXPO_PUBLIC_RAZORPAY_KEY_ID: rzp_test_ci
