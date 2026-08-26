@@ -26,8 +26,17 @@ jobs:
       - name: Check Node version
         run: node --version
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm ci
 
-      - name: Build application
+      - name: Install mobile dependencies
+        run: npm ci
+        working-directory: mobile
+
+      - name: Check Expo installation
+        run: npx expo --version
+        working-directory: mobile
+
+      - name: Build mobile application
         run: npm run build
+        working-directory: mobile

@@ -37,7 +37,7 @@ The workspace **root** `package.json` only orchestrates scripts (`build` / `web`
 cd mobile && npm install --no-audit --legacy-peer-deps --save <pkg>
 ```
 
-`--legacy-peer-deps` is required (expo-router / expo-linking peer conflict).
+`--legacy-peer-deps` is usually not required after aligning to Expo SDK 56 bundled versions. Use it only if npm reports a peer conflict.
 
 ## Progress-related deps (already present)
 
