@@ -63,7 +63,7 @@ export default function Gratitude() {
       });
       try { await refresh(); } catch { /* best-effort */ }
       setDone(true);
-    } catch (e) { console.warn(e); }
+    } catch { /* best-effort */ }
     finally { setBusy(false); }
   };
 

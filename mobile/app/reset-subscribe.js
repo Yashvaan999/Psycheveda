@@ -29,14 +29,13 @@ export default function ResetSubscribe() {
             await api.expireResetSubscriptionForTesting();
             invalidateDashboardCache();
             refresh().catch(() => {});
-          } catch (e) {
-            console.warn('expire reset subscription', e);
+          } catch {
+            // ignore expire errors
           }
         }
         const ent = await api.getResetEntitlement();
         if (!cancelled) setEntitlement(ent);
-      } catch (e) {
-        console.warn('load reset entitlement', e);
+      } catch {
         if (!cancelled) {
           setEntitlement({
             entitled: false,

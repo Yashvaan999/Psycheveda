@@ -51,8 +51,7 @@ export default function GratitudeHistory() {
       const data = await api.listGratitude({ limit: RECENT_LIMIT });
       setGroups(data);
       setAppliedRange(null);
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);
@@ -65,8 +64,7 @@ export default function GratitudeHistory() {
       const data = await api.listGratitude({ from, to });
       setGroups(data);
       setAppliedRange({ from, to });
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);

@@ -160,8 +160,7 @@ export default function GutBrainPlanScreen() {
     try {
       await api.saveGutBrainAssessment({ answers: next, completed });
       return true;
-    } catch (e) {
-      console.warn('Could not save assessment', e?.message || e);
+    } catch {
       return false;
     }
   };

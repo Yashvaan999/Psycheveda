@@ -51,7 +51,7 @@ export default function GoalDetail() {
         estimate_value: String(g.estimate_value), estimate_unit: g.estimate_unit,
         notes: g.notes || '',
       });
-    } catch (e) { console.warn(e); }
+    } catch { /* ignore */ }
     finally { setLoading(false); }
   }, [id]);
 
@@ -65,7 +65,7 @@ export default function GoalDetail() {
       await api.updateGoal(id, edit);
       setEditing(false);
       load();
-    } catch (e) { console.warn(e); }
+    } catch { /* ignore */ }
     finally { setBusy(false); }
   };
 
@@ -74,7 +74,7 @@ export default function GoalDetail() {
     try {
       await api.deleteGoal(id);
       router.back();
-    } catch (e) { console.warn(e); }
+    } catch { /* ignore */ }
     finally { setBusy(false); }
   };
 

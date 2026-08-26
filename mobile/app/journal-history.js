@@ -64,8 +64,7 @@ export default function JournalHistory() {
       const data = await api.listJournal({ limit: RECENT_LIMIT });
       setGroups(data);
       setAppliedRange(null);
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);
@@ -78,8 +77,7 @@ export default function JournalHistory() {
       const data = await api.listJournal({ from, to });
       setGroups(data);
       setAppliedRange({ from, to });
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);
