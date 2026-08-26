@@ -4,7 +4,7 @@ import { useRouter, usePathname, Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, Target } from 'lucide-react-native';
 import { useAuth } from '../lib/auth';
-import api from '../lib/api';
+import { api } from '../lib/api';
 import { colors, radius, fonts, withAlpha } from '../lib/theme';
 import Modal from './Modal';
 import BlessIcon from './BlessIcon';

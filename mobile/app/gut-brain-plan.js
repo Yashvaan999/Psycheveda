@@ -3,10 +3,10 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Anima
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, ClipboardCheck, Languages, Info, Rocket, HeartHandshake } from 'lucide-react-native';
-import api from '../src/lib/api';
+import { api } from '../src/lib/api';
 import { Button, Input, Label } from '../src/components/ui';
 import Modal from '../src/components/Modal';
-import calculateSuccessIdentity, { IDENTITY_STAGES, stageIndexForTier } from '../src/lib/successIdentity';
+import { calculateSuccessIdentity, IDENTITY_STAGES, stageIndexForTier } from '../src/lib/successIdentity';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 
 const SUB_LABELS = [

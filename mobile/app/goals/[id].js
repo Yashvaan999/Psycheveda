@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, TrendingUp, Trash2, Edit3, X, Plus, Rocket,
 } from 'lucide-react-native';
-import api from '../../src/lib/api';
+import { api } from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
 import AppShell from '../../src/components/AppShell';
 import { Button, Card, Input, Textarea, Label, Badge } from '../../src/components/ui';

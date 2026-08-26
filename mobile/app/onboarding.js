@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Users, Briefcase, Coins, HeartPulse, Sparkles, Leaf, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
-import api from '../src/lib/api';
+import { api } from '../src/lib/api';
 import { Button, Card, Input, Label, Textarea } from '../src/components/ui';
 import { colors, fonts, radius, withAlpha } from '../src/lib/theme';
 

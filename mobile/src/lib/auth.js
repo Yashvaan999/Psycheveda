@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
-import api from './api';
+import { api } from './api';
 import { logoutRevenueCat } from './revenueCat';
 
 const AuthContext = createContext(null);

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '../lib/auth';
-import api, { invalidateDashboardCache } from '../lib/api';
+import { api, invalidateDashboardCache } from '../lib/api';
 import {
   initRevenueCat,
   logoutRevenueCat,

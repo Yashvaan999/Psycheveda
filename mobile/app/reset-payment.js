@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ShieldCheck, Tag, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { Button, Card, Input } from '../src/components/ui';
 import { useAuth } from '../src/lib/auth';
-import api, { invalidateDashboardCache } from '../src/lib/api';
+import { api, invalidateDashboardCache } from '../src/lib/api';
 import {
   resetPlanDetails,
   isMobileStorePlatform,

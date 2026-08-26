@@ -6,7 +6,7 @@ import {
   Users, Briefcase, Coins, HeartPulse, Sparkles, ChevronRight, Check, Rocket,
 } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
-import api, { invalidateDashboardCache } from '../src/lib/api';
+import { api, invalidateDashboardCache } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import DailyOracleModal, { DailyOracleTrigger } from '../src/components/DailyOracleCard';
 import { Button, Card, Badge } from '../src/components/ui';

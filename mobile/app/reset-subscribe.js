@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import ResetPaywall from '../src/components/ResetPaywall';
 import { useAuth } from '../src/lib/auth';
-import api, { invalidateDashboardCache } from '../src/lib/api';
+import { api, invalidateDashboardCache } from '../src/lib/api';
 import { formatPeriodEnd } from '../src/lib/resetSubscription';
 import { Button, Card } from '../src/components/ui';
 import { colors, fonts } from '../src/lib/theme';
@@ -52,7 +52,7 @@ export default function ResetSubscribe() {
     })();
 
     return () => { cancelled = true; };
-  }, [reset]);
+  }, [reset, refresh]);
 
   const onSubscribed = async (ent) => {
     setEntitlement(ent);
