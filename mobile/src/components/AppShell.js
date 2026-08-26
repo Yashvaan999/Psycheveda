@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Image } from 'react-native';
 import { useRouter, usePathname, Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,17 +28,17 @@ export default function AppShell({ children }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [reminders, setReminders] = useState([]);
 
-  const refreshReminders = useCallback(async () => {
-    if (!user) return;
-    try {
-      const r = await api.goalReminders();
-      setReminders(r || []);
-    } catch { /* ignore */ }
-  }, [user]);
-
   useEffect(() => {
-    queueMicrotask(() => { refreshReminders(); });
-  }, [refreshReminders, pathname]);
+    let cancelled = false;
+    (async () => {
+      if (!user || cancelled) return;
+      try {
+        const r = await api.goalReminders();
+        if (!cancelled) setReminders(r || []);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [user, pathname]);
 
   const bless = user?.bless_points_balance ?? 0;
   const streak = user?.veda_streak ?? 0;
@@ -67,7 +67,13 @@ export default function AppShell({ children }) {
         </Link>
 
         <View style={styles.headerRight}>
-          <Pressable onPress={() => setBlessOpen(true)} style={styles.iconBtn} hitSlop={6}>
+          <Pressable
+            onPress={() => setBlessOpen(true)}
+            style={styles.iconBtn}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="Bless Points"
+          >
             <BlessIcon size={18} />
             {bless > 0 ? (
               <View style={[styles.cornerBadge, { backgroundColor: colors.primary }]}>
@@ -76,7 +82,13 @@ export default function AppShell({ children }) {
             ) : null}
           </Pressable>
 
-          <Pressable onPress={() => setStreakOpen(true)} style={styles.iconBtn} hitSlop={6}>
+          <Pressable
+            onPress={() => setStreakOpen(true)}
+            style={styles.iconBtn}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="Veda Streak"
+          >
             <Flame size={18} strokeWidth={1.8} color={colors.secondary} />
             {streak > 0 ? (
               <View style={[styles.cornerBadge, { backgroundColor: colors.secondary }]}>
@@ -85,7 +97,13 @@ export default function AppShell({ children }) {
             ) : null}
           </Pressable>
 
-          <Pressable onPress={() => setNotifOpen(true)} style={styles.iconBtn} hitSlop={6}>
+          <Pressable
+            onPress={() => setNotifOpen(true)}
+            style={styles.iconBtn}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="Reminders"
+          >
             <Bell size={18} strokeWidth={1.5} color={colors.subtext} />
             {reminders.length > 0 ? (
               <View style={[styles.cornerBadge, { backgroundColor: colors.primary }]}>
@@ -96,7 +114,13 @@ export default function AppShell({ children }) {
             ) : null}
           </Pressable>
 
-          <Pressable onPress={handleLogout} style={styles.logoutBtn} hitSlop={6}>
+          <Pressable
+            onPress={handleLogout}
+            style={styles.logoutBtn}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="Log out"
+          >
             <LogOut size={16} strokeWidth={1.5} color={withAlpha(colors.subtext, 0.6)} />
           </Pressable>
         </View>
