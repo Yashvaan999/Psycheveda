@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, BookOpen, Sparkles, LogOut, Heart, Flame, Bell, Target } from 'lucide-react-native';
 import { useAuth } from '../lib/auth';
 import api from '../lib/api';
-import { colors, radius, fonts, shadows, withAlpha } from '../lib/theme';
+import { colors, radius, fonts, withAlpha } from '../lib/theme';
 import Modal from './Modal';
 import BlessIcon from './BlessIcon';
 import GlowSparkle from './GlowSparkle';
@@ -36,7 +36,9 @@ export default function AppShell({ children }) {
     } catch { /* ignore */ }
   }, [user]);
 
-  useEffect(() => { refreshReminders(); }, [refreshReminders, pathname]);
+  useEffect(() => {
+    queueMicrotask(() => { refreshReminders(); });
+  }, [refreshReminders, pathname]);
 
   const bless = user?.bless_points_balance ?? 0;
   const streak = user?.veda_streak ?? 0;
@@ -176,7 +178,7 @@ export default function AppShell({ children }) {
           onPress={() => { setBlessOpen(false); router.push('/gratitude'); }}
           style={{ marginTop: 24 }}
         >
-          Offer today's gratitude
+          Offer today&apos;s gratitude
         </Button>
       </Modal>
 
@@ -219,7 +221,7 @@ export default function AppShell({ children }) {
               <Bell size={24} strokeWidth={1.5} color={colors.secondary} />
             </View>
             <Text style={[styles.modalBody, { textAlign: 'center', marginTop: 16 }]}>
-              You're all caught up. Manual goals have today's progress logged; Elevate plans use Dashboard mini-tasks.
+              You&apos;re all caught up. Manual goals have today&apos;s progress logged; Elevate plans use Dashboard mini-tasks.
             </Text>
           </View>
         ) : (

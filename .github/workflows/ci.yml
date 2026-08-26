@@ -37,6 +37,10 @@ jobs:
         run: npx expo --version
         working-directory: mobile
 
+      - name: Run lint
+        run: npm run lint
+        working-directory: mobile
+
       - name: Build mobile application
         run: npm run build
         working-directory: mobile

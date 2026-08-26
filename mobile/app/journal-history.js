@@ -86,7 +86,9 @@ export default function JournalHistory() {
     }
   }, []);
 
-  useEffect(() => { loadRecent(); }, [loadRecent]);
+  useEffect(() => {
+    queueMicrotask(() => { loadRecent(); });
+  }, [loadRecent]);
 
   const applyRange = async () => {
     const normalized = range.getNormalizedRange();

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  ArrowLeft, TrendingUp, Trash2, Edit3, Save, X, Plus, Rocket,
+  ArrowLeft, TrendingUp, Trash2, Edit3, X, Plus, Rocket,
 } from 'lucide-react-native';
 import api from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
@@ -10,8 +10,7 @@ import AppShell from '../../src/components/AppShell';
 import { Button, Card, Input, Textarea, Label, Badge } from '../../src/components/ui';
 import TrackModal from '../../src/components/TrackModal';
 import ElevateSubtaskHistory from '../../src/components/ElevateSubtaskHistory';
-import { probColorForScore } from '../../src/lib/utils';
-import { formatDateLong, formatDateTime } from '../../src/lib/utils';
+import { probColorForScore, formatDateLong, formatDateTime } from '../../src/lib/utils';
 import { colors, fonts, radius, withAlpha } from '../../src/lib/theme';
 
 export default function GoalDetail() {
@@ -56,7 +55,9 @@ export default function GoalDetail() {
     finally { setLoading(false); }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    queueMicrotask(() => { load(); });
+  }, [load]);
 
   const save = async () => {
     setBusy(true);
@@ -243,7 +244,7 @@ export default function GoalDetail() {
 
           {showLogForm && (
             <Card style={{ gap: 10 }}>
-              <Label>Today's progress</Label>
+              <Label>Today&apos;s progress</Label>
               <Textarea
                 value={logNote} onChangeText={(v) => { setLogNote(v); if (logErr) setLogErr(''); }}
                 placeholder="What did you do today?"

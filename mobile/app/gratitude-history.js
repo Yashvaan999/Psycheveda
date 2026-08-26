@@ -73,7 +73,9 @@ export default function GratitudeHistory() {
     }
   }, []);
 
-  useEffect(() => { loadRecent(); }, [loadRecent]);
+  useEffect(() => {
+    queueMicrotask(() => { loadRecent(); });
+  }, [loadRecent]);
 
   const applyRange = async () => {
     const normalized = range.getNormalizedRange();

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -130,7 +130,7 @@ export default function GutBrainPlanScreen() {
     return () => { active = false; };
   }, [router]);
 
-  const pulse = useRef(new Animated.Value(0)).current;
+  const pulse = useMemo(() => new Animated.Value(0), []);
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -417,7 +417,7 @@ export default function GutBrainPlanScreen() {
 
         <Modal open={elevateOpen} onClose={() => !generating && setElevateOpen(false)} title="Elevate Yourself">
           <Text style={styles.elevateIntro}>
-            Tell us a little about your life and rhythm. We'll craft a personalised daily plan to lift you one tier higher.
+            Tell us a little about your life and rhythm. We&apos;ll craft a personalised daily plan to lift you one tier higher.
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -599,7 +599,7 @@ export default function GutBrainPlanScreen() {
 
       <Modal open={confirmLeave} onClose={() => setConfirmLeave(false)}>
         <Text style={styles.confirmMsg}>A few minutes of patience helps us foresee our future.</Text>
-        <Text style={styles.confirmSub}>You haven't finished the assessment yet. Would you like to stay and continue?</Text>
+        <Text style={styles.confirmSub}>You haven&apos;t finished the assessment yet. Would you like to stay and continue?</Text>
         <View style={styles.confirmRow}>
           <Button onPress={() => setConfirmLeave(false)} style={{ flex: 1 }}>Stay</Button>
           <Button variant="secondary" onPress={leaveNow} style={{ flex: 1 }}>Go back</Button>

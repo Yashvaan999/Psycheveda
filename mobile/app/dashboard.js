@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
@@ -59,6 +59,7 @@ export default function Dashboard() {
       const { mode, tip } = await resolveDailyOracle(user.id);
       setOracleMode(mode);
       setOracleTip(tip);
+      if (mode === 'expanded') setOracleOpen(true);
     } catch (e) {
       console.warn(e);
       if (!silent) {
@@ -68,19 +69,13 @@ export default function Dashboard() {
     } finally {
       setOracleLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useFocusEffect(useCallback(() => {
     const silent = hasLoadedRef.current;
     load(silent);
     loadOracle(silent);
   }, [load, loadOracle]));
-
-  useEffect(() => {
-    if (!oracleLoading && oracleMode === 'expanded') {
-      setOracleOpen(true);
-    }
-  }, [oracleLoading, oracleMode]);
 
   const absorbOracle = async () => {
     if (!user?.id || !oracleTip || absorbing) return;
@@ -166,7 +161,7 @@ export default function Dashboard() {
           {/* Tasks today */}
           <View style={styles.section}>
             <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Today's mini-tasks</Text>
+              <Text style={styles.sectionTitle}>Today&apos;s mini-tasks</Text>
               <Pressable onPress={() => setTrackOpen(true)} style={styles.trackPill}>
                 <TrendingUp size={14} strokeWidth={1.5} color={colors.primary} />
                 <Text style={{ color: colors.primary, fontFamily: fonts.bodyMedium, fontSize: 12 }}>Track</Text>

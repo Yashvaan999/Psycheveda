@@ -43,7 +43,9 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  useEffect(() => { bootstrap(); }, [bootstrap]);
+  useEffect(() => {
+    queueMicrotask(() => { bootstrap(); });
+  }, [bootstrap]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {

@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Animated, Easing, Platform } from 'react-native';
 import { Sparkles } from 'lucide-react-native';
 import { colors } from '../lib/theme';
 
 export default function GlowSparkle({ size = 16, color = colors.gold, strokeWidth = 1.5 }) {
-  const glow = useRef(new Animated.Value(1)).current;
+  const glow = useMemo(() => new Animated.Value(1), []);
 
   useEffect(() => {
     const useNative = Platform.OS !== 'web';
