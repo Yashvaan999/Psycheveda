@@ -36,8 +36,8 @@ export function AuthProvider({ children }) {
         const enriched = await buildUser(session.user);
         setUser(enriched);
       }
-    } catch (e) {
-      console.warn('Auth bootstrap failed', e);
+    } catch {
+      // ignore bootstrap errors
     } finally {
       setLoading(false);
     }

@@ -37,8 +37,8 @@ export default function RevenueCatSync() {
           providerRef: ent.productId,
         });
         invalidateDashboardCache();
-      } catch (e) {
-        console.warn('RevenueCat sync', e);
+      } catch {
+        // ignore sync errors
       }
     })();
 

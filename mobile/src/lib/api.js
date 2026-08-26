@@ -681,8 +681,7 @@ export const api = {
       const { data, error } = await supabase.rpc('get_reset_entitlement');
       if (error) throw error;
       return parseEntitlement(data);
-    } catch (e) {
-      console.warn('get_reset_entitlement', e);
+    } catch {
       return parseEntitlement(null);
     }
   },
