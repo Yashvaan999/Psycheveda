@@ -22,7 +22,6 @@ console.log("test");
       ]}
     >
       {/* TEMP: intentional lint error for CI testing — delete this line */}
-      <Text>don't keep this</Text>
       {typeof children === 'string' ? (
         <Text style={[styles.btnText, s.text]}>{children}</Text>
       ) : (
