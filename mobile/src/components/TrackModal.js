@@ -4,7 +4,7 @@ import Svg, { Path, Line, Circle, Defs, LinearGradient, Stop } from 'react-nativ
 import {
   X, TrendingUp, Users, Briefcase, Coins, HeartPulse, Sparkles, Target,
 } from 'lucide-react-native';
-import api from '../lib/api';
+import { api } from '../lib/api';
 import ElevateSubtaskHistory from './ElevateSubtaskHistory';
 import { probColorForScore } from '../lib/utils';
 import { colors, radius, fonts, withAlpha } from '../lib/theme';

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '../lib/auth';
-import api, { invalidateDashboardCache } from '../lib/api';
+import { api, invalidateDashboardCache } from '../lib/api';
 import {
   initRevenueCat,
   logoutRevenueCat,
@@ -37,8 +37,8 @@ export default function RevenueCatSync() {
           providerRef: ent.productId,
         });
         invalidateDashboardCache();
-      } catch (e) {
-        console.warn('RevenueCat sync', e);
+      } catch {
+        // ignore sync errors
       }
     })();
 

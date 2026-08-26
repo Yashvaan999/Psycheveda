@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Heart, History, Lightbulb } from 'lucide-react-native';
-import api from '../src/lib/api';
+import { History, Lightbulb } from 'lucide-react-native';
+import { api } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import Modal from '../src/components/Modal';
 import { Button, Card, Textarea, Label } from '../src/components/ui';
@@ -63,7 +63,7 @@ export default function Gratitude() {
       });
       try { await refresh(); } catch { /* best-effort */ }
       setDone(true);
-    } catch (e) { console.warn(e); }
+    } catch { /* best-effort */ }
     finally { setBusy(false); }
   };
 

@@ -150,7 +150,6 @@ export function analyzeElevateSubTasks(miniTasks, today = todayStrLocal()) {
 
     const dayHit =
       actionable.length > 0 && actionable.every((e) => e.type === 'hit');
-    const dayMiss = isPast && actionable.some((e) => e.type === 'miss');
 
     timeline.push({
       dateStr,

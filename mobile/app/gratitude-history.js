@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import api from '../src/lib/api';
+import { api } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import {
   DateRangeCalendarButton,
@@ -51,8 +51,7 @@ export default function GratitudeHistory() {
       const data = await api.listGratitude({ limit: RECENT_LIMIT });
       setGroups(data);
       setAppliedRange(null);
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);
@@ -65,8 +64,7 @@ export default function GratitudeHistory() {
       const data = await api.listGratitude({ from, to });
       setGroups(data);
       setAppliedRange({ from, to });
-    } catch (e) {
-      console.warn(e);
+    } catch {
       setGroups([]);
     } finally {
       setLoading(false);

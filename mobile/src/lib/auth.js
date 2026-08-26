@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
-import api from './api';
+import { api } from './api';
 import { logoutRevenueCat } from './revenueCat';
 
 const AuthContext = createContext(null);
@@ -36,8 +36,8 @@ export function AuthProvider({ children }) {
         const enriched = await buildUser(session.user);
         setUser(enriched);
       }
-    } catch (e) {
-      console.warn('Auth bootstrap failed', e);
+    } catch {
+      // ignore bootstrap errors
     } finally {
       setLoading(false);
     }

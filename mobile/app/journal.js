@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BookOpen, History, Lightbulb } from 'lucide-react-native';
-import api from '../src/lib/api';
+import { api } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import Modal from '../src/components/Modal';
 import { Button, Card, Input, Textarea, Label } from '../src/components/ui';

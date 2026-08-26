@@ -35,8 +35,7 @@ export async function initRevenueCat(appUserId) {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
     Purchases.configure({ apiKey: revenueCatApiKey(), appUserID: appUserId });
     return true;
-  } catch (e) {
-    console.warn('RevenueCat init failed', e);
+  } catch {
     return false;
   }
 }
@@ -46,8 +45,8 @@ export async function logoutRevenueCat() {
   try {
     const Purchases = await getPurchases();
     await Purchases.logOut();
-  } catch (e) {
-    console.warn('RevenueCat logout', e);
+  } catch {
+    // ignore logout errors
   }
 }
 
@@ -72,8 +71,7 @@ export async function getRevenueCatCustomerInfo() {
   try {
     const Purchases = await getPurchases();
     return await Purchases.getCustomerInfo();
-  } catch (e) {
-    console.warn('RevenueCat getCustomerInfo', e);
+  } catch {
     return null;
   }
 }

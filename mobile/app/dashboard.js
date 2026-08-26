@@ -6,7 +6,7 @@ import {
   Users, Briefcase, Coins, HeartPulse, Sparkles, ChevronRight, Check, Rocket,
 } from 'lucide-react-native';
 import { useAuth } from '../src/lib/auth';
-import api, { invalidateDashboardCache } from '../src/lib/api';
+import { api, invalidateDashboardCache } from '../src/lib/api';
 import AppShell from '../src/components/AppShell';
 import DailyOracleModal, { DailyOracleTrigger } from '../src/components/DailyOracleCard';
 import { Button, Card, Badge } from '../src/components/ui';
@@ -43,7 +43,7 @@ export default function Dashboard() {
       setTasks(t);
       setStats(s);
       hasLoadedRef.current = true;
-    } catch (e) { console.warn(e); }
+    } catch { /* ignore */ }
     finally { setLoading(false); }
   }, []);
 
@@ -60,8 +60,7 @@ export default function Dashboard() {
       setOracleMode(mode);
       setOracleTip(tip);
       if (mode === 'expanded') setOracleOpen(true);
-    } catch (e) {
-      console.warn(e);
+    } catch {
       if (!silent) {
         setOracleMode(null);
         setOracleTip(null);
@@ -84,9 +83,8 @@ export default function Dashboard() {
       await markOracleAbsorbed(user.id, oracleTip.id);
       setOracleMode('collapsed');
       setOracleOpen(false);
-    } catch (e) {
-      console.warn(e);
-    } finally {
+    } catch { /* ignore */ }
+    finally {
       setAbsorbing(false);
     }
   };
@@ -103,9 +101,8 @@ export default function Dashboard() {
       invalidateDashboardCache();
       refresh().catch(() => {});
       api.fetchDashboard({ force: true }).then(({ stats: s }) => setStats(s)).catch(() => {});
-    } catch (e) {
+    } catch {
       setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: false } : t)));
-      console.warn(e);
     } finally {
       setTogglingIds((prev) => {
         const next = new Set(prev);

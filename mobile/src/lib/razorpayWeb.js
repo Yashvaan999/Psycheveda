@@ -58,13 +58,6 @@ export async function openStandardRazorpayCheckout({
   const key = keyId || process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID;
   if (!key) throw new Error('Razorpay is not configured.');
 
-  const envKey = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '';
-  if (keyId && envKey && keyId !== envKey) {
-    console.warn(
-      'Razorpay Key ID mismatch: mobile/.env differs from Supabase secrets. Using server key for checkout.',
-    );
-  }
-
   return new Promise((resolve, reject) => {
     const rzp = new window.Razorpay({
       key,
