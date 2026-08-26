@@ -6,7 +6,7 @@ export function Button({
   children, onPress, disabled, variant = 'primary', style, testID,
 }) {
   const s = variantStyles[variant] || variantStyles.primary;
-
+console.log("test");
   return (
     <Pressable
       onPress={onPress}
