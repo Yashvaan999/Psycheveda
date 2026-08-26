@@ -6,6 +6,7 @@ export function Button({
   children, onPress, disabled, variant = 'primary', style, testID,
 }) {
   const s = variantStyles[variant] || variantStyles.primary;
+
   return (
     <Pressable
       onPress={onPress}
@@ -20,6 +21,8 @@ export function Button({
         style,
       ]}
     >
+      {/* TEMP: intentional lint error for CI testing — delete this line */}
+      <Text>don't keep this</Text>
       {typeof children === 'string' ? (
         <Text style={[styles.btnText, s.text]}>{children}</Text>
       ) : (
